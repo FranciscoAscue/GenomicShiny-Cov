@@ -17,7 +17,7 @@ missingPackages <- function(pkg){
 dependencies <- c("shiny","shinycssloaders","pheatmap","plotly","fossil",
                   "remotes","dplyr","rgdal","sp","sf","geojsonsf","DT",
                   "leaflet","leaflet.minicharts","viridisLite","viridis",
-                  "RColorBrewer","epical")
+                  "RColorBrewer","rjson","epical")
 
 ################################################################################
 # Package R dependencies
