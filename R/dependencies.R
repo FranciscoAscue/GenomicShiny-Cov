@@ -1,15 +1,13 @@
 ################################################################################
 ## ubuntu 20.04 / 21.10
 ## debian 10
-#libprotobuf-dev
-#libjq-dev
-#protobuf-compiler
-#libudunits2-dev
-#libgdal-dev
-#
-#
-#
-#
+# Install dependencies 
+# . libprotobuf-dev
+# . libjq-dev
+# . protobuf-compiler
+# . libudunits2-dev
+# . libgdal-dev
+
 ################################################################################
 # Install missing packages
 

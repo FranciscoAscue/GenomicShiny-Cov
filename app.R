@@ -92,14 +92,10 @@ server <- function(input, output){
     }
     
     emetadata <- read.csv(input$emetadata$datapath, sep = ";")
-    emetadata$FECHA_FALLECIMIENTO <- as.Date(as.character(emetadata$FECHA_FALLECIMIENTO),format = "%Y%m%d")
+    emetadata$Date <- as.Date(as.character(emetadata$Date),format = "%Y%m%d")
     return(emetadata)
   })
-  #dead <- read.csv("/home/shinyProject/shinycovid/data/fallecidos_covid.csv", sep = ";")
-  #dead$FECHA_FALLECIMIENTO <- as.Date(as.character(dead$FECHA_FALLECIMIENTO),format = "%Y%m%d")
-#   LocationCountry <- read.csv("Data/Location-country.txt", header = TRUE, sep = ";")
-#   col <- read.csv("Data/colnames.csv", header = TRUE)
-  
+
   datamap <- reactive({
     
     datos_ins <- as.data.frame(meta())
@@ -146,9 +142,9 @@ server <- function(input, output){
     total <- datos_ins %>% group_by(region) %>% summarise(total = n())
     cities <- merge(x  = cities, y = total, by = 'region', all = TRUE )
     
-    conteo <- epidem_data() %>% filter(FECHA_FALLECIMIENTO >= input$Daterange[1], FECHA_FALLECIMIENTO <= input$Daterange[2])
-    conteo <- conteo %>% group_by(DEPARTAMENTO) %>% summarise( n = n())
-    conteo$DEPARTAMENTO <- toupper(conteo$DEPARTAMENTO)
+    conteo <- epidem_data() %>% filter(Date >= input$Daterange[1], Date <= input$Daterange[2])
+    conteo <- conteo %>% group_by(Location) %>% summarise( n = n())
+    conteo$Location <- toupper(conteo$Location)
     colnames(conteo) <- c("Location", "N")
     Merge_data <- inner_join(map,conteo, by = 'Location' )
     Merge_data$Ratio <- (Merge_data$N/Merge_data$Population)*1000000
