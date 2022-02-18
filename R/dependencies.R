@@ -14,17 +14,17 @@
 missingPackages <- function(pkg){
     if( !is.element(pkg,rownames(installed.packages() ) ) ){
       message(pkg, "-----> Package is not installed ")
-      if(pkg == "epical"){
-        remotes::install_github("chrismerkord/epical")
-        break
+      if(pkg == "htmlwidgets"){
+        install.packages(pkg, version = "1.5.4")
+      }else{
+        install.packages(pkg)
       }
-      install.packages(pkg)
     }
 }
 ################################################################################
 
 dependencies <- c("shiny","shinycssloaders","pheatmap","plotly","fossil",
-                  "remotes","dplyr","rgdal","sp","sf","geojsonsf","DT",
+                  "remotes","dplyr","rgdal","sp","sf","geojsonsf","DT","htmlwidgets",
                   "leaflet","leaflet.minicharts","viridisLite","viridis",
                   "RColorBrewer","rjson","epical")
 
@@ -35,5 +35,11 @@ for(i in dependencies){
   missingPackages(i)
   library(i, character.only = TRUE)
 }
+
+
+if( !is.element("epical",rownames(installed.packages() ) ) ){
+  remotes::install_github("chrismerkord/epical")
+}
+
 ################################################################################
 
