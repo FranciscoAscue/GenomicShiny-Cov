@@ -92,7 +92,7 @@ server <- function(input, output){
     }
     
     emetadata <- read.csv(input$emetadata$datapath, sep = input$separator, header = TRUE)
-    emetadata$FECHA_FALLECIMIENTO <- as.Date(as.character(dead$FECHA_FALLECIMIENTO),format = "%Y%m%d")
+    emetadata$FECHA_FALLECIMIENTO <- as.Date(as.character(emetadata$FECHA_FALLECIMIENTO),format = "%Y%m%d")
     return(emetadata)
   })
   #dead <- read.csv("/home/shinyProject/shinycovid/data/fallecidos_covid.csv", sep = ";")
