@@ -41,5 +41,6 @@ if( !is.element("epical",rownames(installed.packages() ) ) ){
   remotes::install_github("chrismerkord/epical")
 }
 
+library(epical)
 ################################################################################
 
