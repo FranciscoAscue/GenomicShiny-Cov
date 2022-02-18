@@ -7,6 +7,7 @@ missingPackages <- function(pkg){
       message(pkg, "-----> Package is not installed ")
       if(pkg == "epical"){
         remotes::install_github("chrismerkord/epical")
+        
       }
       install.packages(pkg)
     }
