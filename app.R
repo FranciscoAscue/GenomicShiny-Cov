@@ -91,7 +91,7 @@ server <- function(input, output){
       return(NULL)
     }
     
-    emetadata <- read.csv(input$emetadata$datapath, sep = input$separator, header = TRUE)
+    emetadata <- read.csv(input$emetadata$datapath, sep = ";")
     emetadata$FECHA_FALLECIMIENTO <- as.Date(as.character(emetadata$FECHA_FALLECIMIENTO),format = "%Y%m%d")
     return(emetadata)
   })
