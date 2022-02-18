@@ -1,13 +1,24 @@
 ################################################################################
-# Install missing packages
+## ubuntu 20.04 / 21.10
+## debian 10
+#libprotobuf-dev
+#libjq-dev
+#protobuf-compiler
+#libudunits2-dev
+#libgdal-dev
+#
+#
+#
+#
 ################################################################################
+# Install missing packages
 
 missingPackages <- function(pkg){
     if( !is.element(pkg,rownames(installed.packages() ) ) ){
       message(pkg, "-----> Package is not installed ")
       if(pkg == "epical"){
         remotes::install_github("chrismerkord/epical")
-        
+        break
       }
       install.packages(pkg)
     }
