@@ -1,0 +1,9 @@
+Location;Country
+"Africa /";"South Africa /","Egypt /"
+"Asia /";"China /","India /","Israel /","Japan /","Saudi Arabia /","Singapure /","South Korea /","United Arab Emirates /"
+"Europe /";"Croatia /","Denmark /","Finland /","France /","Germany /","Ireland /","Italy /","Netherlands /", "Russia /","Spain /","United Kingdom"
+"North America /";"Canada /","Costa Rica /","Cuba /","El Salvador /","Jamaica /","Mexico /","Nicaragua /","Panama /","Puerto Rico /","USA /"
+"Oceania /";"Australia /","New Zealand /"
+"South America /";"Argentina /","Bolivia /","Brazil /","Chile /","Colombia /","Ecuador /","Peru /","Uruguay /"
+"Caribbean /";"Cuba /","Dominican Republic /","Jamaica /","Puerto Rico /","Trinidad and Tobago /"
+"Central America /";"Costa Rica /","El Salvador /","Guatemala /","Honduras /","Nicaragua /","Panama /"
