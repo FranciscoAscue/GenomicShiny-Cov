@@ -17,9 +17,9 @@ UploadData <- tabPanel("Upload Data",
                                         accept=c('.geojson',
                                                  '.geocsv')),
                               
-                              column(2,radioButtons("selectInput", "Select input",
+                              column(4,radioButtons("selectInput", "Select input",
                                                     choices = list("GISAID" = "GISAID", "Custom Metadata" = "Custom"), selected = "GISAID")),
-                              column(2,radioButtons("separator", "Select separator",
+                              column(4,radioButtons("separator", "Select separator",
                                                     choices = list("Tab" = "\t", "Comma" = ","), selected = "\t")),
                               
                               uiOutput("selectLocation"),
