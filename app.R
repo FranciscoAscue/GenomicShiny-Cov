@@ -6,35 +6,51 @@ source("R/data-preprocesing.R", local = TRUE) # Pre processing data with scripts
 source("R/ui-panel.R", local = TRUE)
 source("R/dependencies.R", local = TRUE)
 source("config.R", local = TRUE)
-
+source("tests/test_metadata.R", local = TRUE)
 ################################################################################################################################################################
 
 ## Plot functions
-# heat map of lineage frequency and region distribution 
+# heat map of lineage frequency and location distribution 
 
 #hovertemplate = paste('CDC: %{text}', '<br>%{y:.0%}<br>')
-line_stack_plot = function(data, stack){
+line_stack_plot <-  function(data, stack){
   data <- ungroup(data)
   if(stack == "stack"){
-      plot <- plot_ly(data, x = ~Date, y = ~Frecuency, name = ~Select,
-                      groupnorm = "Percentaje", text = ~paste("CDC week:", Epi.Week),
-                      type = 'scatter', mode ="lines", stackgroup = 'two')
-    }else{
-      plot <- plot_ly(data , x = ~Date, y = ~Frecuency, name = ~Select,
-                      groupnorm = "Percentaje", text = ~paste("CDC week:", Epi.Week),
-                      type = 'scatter', mode ="lines")
-    }
-    
-    return(plot)
+    plot <- plot_ly(data, x = ~Date, y = ~Frecuency, name = ~Select,
+                    groupnorm = "Percentaje", text = ~paste("CDC week:", Epi.Week),
+                    type = 'scatter', mode ="lines", stackgroup = 'two')
+  }else{
+    plot <- plot_ly(data , x = ~Date, y = ~Frecuency, name = ~Select,
+                    groupnorm = "Percentaje", text = ~paste("CDC week:", Epi.Week),
+                    type = 'scatter', mode ="lines")
+  }
+  
+  return(plot)
 }
 
 
-heatmap_plot = function(data, kmns, nk, mthd) { 
+hist_plot <- function(data, lineage = "AY.102", ndf = 5){
+  
+  if(is.null(data$Date)){
+    return(plot_ly(data.frame(NULL), type = "scatter", mode ="line"))
+  }else{
+    
+    model <- lm(Frecuency ~ ns(Date, df = ndf), data = data)
+    plot <- plot_ly(data, x = ~Date , y = ~Frecuency, name = lineage, type = 'bar', color = I("light blue"),
+                    hoverinfo = ~Frecuency, text = ~paste("CDC week:", epi_week)) %>%
+      add_trace(x = ~Date, y = ~fitted(model), type = "scatter", mode ="line", color = I("red"))
+    return(plot)
+  }
+  
+}
+
+
+heatmap_plot <- function(data, kmns, nk, mthd) { 
   if(kmns == "k_means"){
-      phmap = pheatmap(data,cluster_rows = TRUE, cluster_cols = TRUE, kmeans_k = nk, 
-                    clustering_distance_rows = mthd,clustering_distance_cols = mthd, 
-                    cutree_rows = nk, cutree_cols = nk, color = RColorBrewer::brewer.pal(9, "BuGn"))
-      return(phmap)
+    phmap = pheatmap(data,cluster_rows = TRUE, cluster_cols = TRUE, kmeans_k = nk, 
+                     clustering_distance_rows = mthd,clustering_distance_cols = mthd, 
+                     cutree_rows = nk, cutree_cols = nk, color = RColorBrewer::brewer.pal(9, "BuGn"))
+    return(phmap)
   } else{
     phmap = pheatmap(data,cluster_rows = TRUE, cluster_cols = TRUE,  
                      clustering_distance_rows = mthd,clustering_distance_cols = mthd, 
@@ -45,7 +61,7 @@ heatmap_plot = function(data, kmns, nk, mthd) {
 
 ## ui shiny, source tab panel from ui-panel.R
 ui <- navbarPage("GenomicShiny-Cov", id="nav",
-           UploadData, MapStadictics, Analysis) 
+                 UploadData, MapStadictics, Analysis) 
 
 ## server shiny
 server <- function(input, output){
@@ -73,17 +89,17 @@ server <- function(input, output){
     }
     
     if(input$selectInput == "GISAID"){
-        req(input$pais)
-        metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
-        metadata <- metadata_preprosesing(metadata,input$Location, input$pais, geojson()$map)
-        colnames(metadata) <- col$NEW
-        #metadata$date <- as.Date(metadata$date)
+      req(input$pais)
+      metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
+      metadata <- metadata_preprosesing(metadata,input$Location, input$pais, geojson()$map)
+      colnames(metadata) <- col$NEW
+      #metadata$date <- as.Date(metadata$date)
     }else{
       metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
       metadata <- metadata %>% filter(nchar(as.character(date)) == 10)
     }
     return(metadata)
-    })
+  })
   
   epidem_data <- reactive({
     req(input$emetadata)
@@ -91,33 +107,33 @@ server <- function(input, output){
       return(NULL)
     }
     
-    emetadata <- read.csv(input$emetadata$datapath, sep = ";")
-    emetadata$Date <- as.Date(as.character(emetadata$Date),format = "%Y%m%d")
+    emetadata <- read.csv(input$emetadata$datapath, sep = input$Episeparator)
+    emetadata$Date <- as.Date(as.character(emetadata$Date),format = input$DateFormat)
     return(emetadata)
   })
-
+  
   datamap <- reactive({
     
-    datos_ins <- as.data.frame(meta())
-    datos_ins <- datos_ins %>% filter( date >= input$Daterange[1] , date <= input$Daterange[2] )
+    metadata <- as.data.frame(meta())
+    metadata <- metadata %>% filter( date >= input$Daterange[1] , date <= input$Daterange[2] )
     centers <- as.data.frame(st_coordinates(st_centroid(geojson()$map)))
     x <- mean(centers$X)
     y <- mean(centers$Y)
     req(input$Variant)
     if(input$Variant == "Total"){
-      datos_ins <- datos_ins
+      metadata <- metadata
     } else { 
       a <- input$Variant
-      datos_ins <- datos_ins %>% filter(VOC.VOI == a)
+      metadata <- metadata %>% filter(VOC.VOI == a)
     }
     
     if(input$Escala == "linear"){
-      conteo <- datos_ins %>% group_by(region) %>% summarise( n = n())
+      conteo <- metadata %>% group_by(location) %>% summarise( n = n())
     } else{
-      conteo <- datos_ins %>% group_by(region) %>% summarise( n = log10(n()))
+      conteo <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
     }
     
-    conteo$region <- toupper(conteo$region)
+    conteo$location <- toupper(conteo$location)
     colnames(conteo) <- c("Location", "N")
     NOM <- conteo$Location
     N <- conteo$N
@@ -126,28 +142,28 @@ server <- function(input, output){
   })
   
   
-
+  
   leaflet_data <- reactive({
     map <- geojson()$map
     cities <- as.data.frame(st_coordinates(st_centroid(map)))
     map$Location <- toupper(map$Location)
-    cities$region <- map$Location
-    datos_ins <- as.data.frame(meta())
-    datos_ins$region <- toupper(datos_ins$region)
-    datos_ins <- datos_ins %>% filter(date >= input$Daterange[1] , date <= input$Daterange[2])
-    for( var in unique(datos_ins$VOC.VOI)){
-      temp <- datos_ins %>% filter(VOC.VOI == var) %>% group_by(region) %>% summarise( !!paste0(var) := n())
-      cities <- merge(x  = cities, y = temp, by = 'region', all = TRUE  )
+    cities$location <- map$Location
+    metadata <- as.data.frame(meta())
+    metadata$location <- toupper(metadata$location)
+    metadata <- metadata %>% filter(date >= input$Daterange[1] , date <= input$Daterange[2])
+    for( var in unique(metadata$VOC.VOI)){
+      temp <- metadata %>% filter(VOC.VOI == var) %>% group_by(location) %>% summarise( !!paste0(var) := n())
+      cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
     }
-    total <- datos_ins %>% group_by(region) %>% summarise(total = n())
-    cities <- merge(x  = cities, y = total, by = 'region', all = TRUE )
+    total <- metadata %>% group_by(location) %>% summarise(total = n())
+    cities <- merge(x  = cities, y = total, by = 'location', all = TRUE )
     
     conteo <- epidem_data() %>% filter(Date >= input$Daterange[1], Date <= input$Daterange[2])
     conteo <- conteo %>% group_by(Location) %>% summarise( n = n())
     conteo$Location <- toupper(conteo$Location)
     colnames(conteo) <- c("Location", "N")
     Merge_data <- inner_join(map,conteo, by = 'Location' )
-    Merge_data$Ratio <- (Merge_data$N/Merge_data$Population)*1000000
+    Merge_data$Ratio <- (Merge_data$N/Merge_data$Population)*100000
     pal <- colorNumeric(  palette = "Greys", NULL)
     long <- cities$X
     lat <- cities$Y
@@ -158,33 +174,32 @@ server <- function(input, output){
   })
   
   lineage_var_data <- reactive({
-    datos_ins <- as.data.frame(meta())
-    #datos_ins$date <- as.Date(datos_ins$date)
-    datos_ins <- stackvariant(datos_ins, input$lineageDate[1], input$lineageDate[2], input$ngenomes, input$Varline)
+    metadata <- as.data.frame(meta())
+    #metadata$date <- as.Date(metadata$date)
+    metadata <- stackvariant(metadata, input$lineageDate[1], input$lineageDate[2], input$ngenomes, input$Varline)
     
   })
   
-  hist_plot <- reactive({
+  hist_data <- reactive({
     
-    datos_ins <- as.data.frame(meta())
-    datos_ins$date <- as.Date(datos_ins$date)
-    data_lin <- freq_voc_voi(datos_ins, input$lineage)
+    metadata <- as.data.frame(meta())
+    metadata$date <- as.Date(metadata$date)
+    data_lin <- freq_voc_voi(metadata, input$lineage)
     data_lin
   })
-  
   
   heatmap_data <- reactive({
     data <- as.data.frame(meta())
     data$date <- as.Date(data$date)
     data <- data %>% filter(date >= input$heatmapDate[1], date <= input$heatmapDate[2])
-    counts <- data %>% group_by(region, lineage) %>% 
+    counts <- data %>% group_by(location, lineage) %>% 
       summarise(n = n())
-    names(counts) <- c("region", "lineage", "Freq")
-    
+    names(counts) <- c("location", "lineage", "Freq")
+    counts <- counts %>% filter(Freq >= input$mfrecuency)
     counts$Freq <- log10(counts$Freq)
     #counts$Freq <- round(counts$Freq, digits = 3)
     counts <- as.data.frame(counts)
-    cuadro_motivo <- create.matrix(counts, tax.name = "region",
+    cuadro_motivo <- create.matrix(counts, tax.name = "location",
                                    locality = "lineage",
                                    abund.col = "Freq",
                                    abund = TRUE)
@@ -195,8 +210,24 @@ server <- function(input, output){
     cuadro_motivo
   })
   
+  MetadataTest <- reactive({
+    
+    data <- metadata_test(metadata = meta(), geojson = geojson()$map, epidemio = epidem_data())
+  })
+  
+  mutation_data <- reactive({
+    data <- mutations(meta(),xmin = input$heatmapDate[1], xmax = input$heatmapDate[2], input$mfrecuency )
+  })
   
   ############################################################ Output ####################################################################################  
+  
+  output$metadataTest <- renderTable({
+    input$RunAnalysis
+    
+    isolate({
+      MetadataTest()
+    })
+  }, sanitize.text.function = function(x) x)
   
   
   output$map <- renderPlotly({
@@ -232,7 +263,7 @@ server <- function(input, output){
       addPolygons(stroke = FALSE, smoothFactor = 0.4, fillOpacity = 1,
                   fillColor = ~leaflet_data()$df2(Ratio),
                   label = ~paste0(Location, ": ", formatC(Ratio, big.mark = ","))) %>%
-      addLegend(pal = leaflet_data()$df2, values = ~Ratio, title = "Tasa de Mortalidad", opacity = 1.0) %>%  
+      addLegend(pal = leaflet_data()$df2, values = ~Ratio, title = "Mortality rate x10⁵", opacity = 1.0) %>%  
       addMinicharts(
         leaflet_data()$long, leaflet_data()$lat,
         type = "pie",
@@ -250,8 +281,9 @@ server <- function(input, output){
   })
   
   output$hist <- renderPlotly({ 
-    plot_ly(hist_plot(), x = ~Date , y = ~Frecuency, type = 'bar', color = I("light blue"),
-            hoverinfo = ~Frecuency, text = ~paste("CDC week:", epi_week))
+    #plot_ly(hist_data(), x = ~Date , y = ~Frecuency, name = input$lineage, type = 'bar', color = I("light blue"),
+    #            hoverinfo = ~Frecuency, text = ~paste("CDC week:", epi_week)) 
+    hist_plot(hist_data(), lineage = input$lineage) 
   })
   
   output$heatmap <- renderPlot({
@@ -301,8 +333,14 @@ server <- function(input, output){
                 selected = "Total")
   })
   
- 
-  output$tabla <- DT::renderDataTable(head(meta(), n = 100),
+  
+  output$mutation <- renderPlotly({
+    fig <- plot_ly(mutation_data(),x = ~week_date,
+                   y = ~freq, type = 'scatter', name=~mutation,mode = 'lines') 
+    fig
+  })
+  
+  output$tabla <- DT::renderDataTable(meta(),
                                       options = list(scrollX = TRUE),
                                       rownames = FALSE)
   

@@ -22,6 +22,7 @@ metadata_preprosesing  <- function(metadata, region, country, geoLocation){
   metadata$Location <- gsub("\\/.*","", metadata$Location)
   metadata$Location <- trimws(metadata$Location, which = "both", whitespace = "[ \t\r\n]")
   metadata$Location <- toupper(metadata$Location)
+  geoLocation$Location <- toupper(geoLocation$Location)
   
   Locations <- unique(metadata$Location)
   
@@ -47,12 +48,12 @@ stackvariant <- function(data, mindate, maxdate, ngenomes, varline){
     data$Date <-  epi_week_date(data$epi_week, data$epi_year, system = "cdc")
     return(data)
   }
-
+  
   if( varline == "Lineages"){
-      data <- inter(data)
-      data_1 <- data %>% group_by(Date, epi_week,  lineage) %>% summarise( n = n()) %>%
-        mutate(Frecuency = n / sum(n))
-      
+    data <- inter(data)
+    data_1 <- data %>% group_by(Date, epi_week,  lineage) %>% summarise( n = n()) %>%
+      mutate(Frecuency = n / sum(n))
+    
   }else{
     data <- inter(data)
     data_1 <- data %>% group_by(Date,epi_week,  VOC.VOI) %>% summarise( n = n()) %>%
@@ -80,8 +81,67 @@ freq_voc_voi <- function(data_1, lin){
     return(data_1)
     
   } else{
-    return(data.frame(Date = c(""), epi_week = c(""), Frecuency = c("")))
+    return(data.frame(Date = NULL, epi_week = NULL, Frecuency = NULL))
   }
   
+}
+
+
+
+#read data#
+mutations <- function(data,xmin= "2021-01-01", xmax="2022-02-25" ,freq = 50,variant="Omicron"){
+  
+  data <- data[data$VOC.VOI == variant,] 
+  data <- data %>% filter(date >= xmin, date <= xmax)
+  data <- add_epi_week(data, "date", system="cdc")
+  data$week_date <- epi_week_date(data$epi_week,data$epi_year,system="cdc")
+  data <- as.data.frame(data)
+  data$dec_date <- decimal_date(ymd(data$week_date))
+  
+  #replace "(" and ")"#
+  data$Substitutions <- gsub("(","",data$Substitutions , fixed = T )
+  data$Substitutions <- gsub(")","",data$Substitutions , fixed = T )
+  
+  #separate by commas#
+  elements <- unlist(strsplit(data$Substitutions, ","))
+  a <- sort(unique(elements))
+  b <- grep("Spike", a, value = TRUE)
+  
+  #prepare the loop#
+  
+  c <- 0
+  d <- 0 
+  e <- 0 
+  f <- 0 
+  g <- 0 
+  h <- 0 
+  j <- 0
+  for (i in 1:length(b)){
+    c <- append(c,data[grep(b[i],data$Substitutions),1])
+    d <- append(d,data[grep(b[i],data$Substitutions),2])
+    e <- append(e,data[grep(b[i],data$Substitutions),3])
+    f <- append(f,data[grep(b[i],data$Substitutions),4])
+    g <- append(g,data[grep(b[i],data$Substitutions),15])
+    h <- append(h,data[grep(b[i],data$Substitutions),22])
+    j <- append(j,rep(b[i],length(grep(b[i],data$Substitutions))))
+  }
+  
+  k <- data.frame(c,d,e,f,g,h,j)
+  
+  k <- k[-1,]
+  l <- k%>%group_by(h,j)%>%summarise(n=n())
+  #plot#
+  l <- as.data.frame(l)
+  l$date <- date_decimal(l$h)
+  
+  names(l) <- c("decimal_date","mutation","freq","week_date")
+  
+  mut_freqs <- data.frame(table(k$j))
+  mut_freqs$perc <- (mut_freqs$Freq/nrow(data))*100
+  mut_selec <- mut_freqs[mut_freqs$perc >= freq,1]
+  mut_freqs2 <- mut_freqs[order(-mut_freqs$perc),]
+  
+  m <- l[l$mutation %in% mut_selec,]
+  return(m)
 }
 

@@ -2,7 +2,6 @@
 # Ui panel
 
 
-
 UploadData <- tabPanel("Upload Data",
                        column(4, 
                               h3(p(style="color:black;text-align:left", 
@@ -17,9 +16,9 @@ UploadData <- tabPanel("Upload Data",
                                         accept=c('.geojson',
                                                  '.geocsv')),
                               
-                              column(4,radioButtons("selectInput", "Select input",
+                              column(3,radioButtons("selectInput", "Select input",
                                                     choices = list("GISAID" = "GISAID", "Custom Metadata" = "Custom"), selected = "GISAID")),
-                              column(4,radioButtons("separator", "Select separator",
+                              column(3,radioButtons("separator", "Select separator",
                                                     choices = list("Tab" = "\t", "Comma" = ","), selected = "\t")),
                               
                               uiOutput("selectLocation"),
@@ -29,23 +28,34 @@ UploadData <- tabPanel("Upload Data",
                                         accept=c('text/csv',
                                                  'text/comma-separated-values,text/plain',
                                                  '.csv','.tsv')),
+                              column(8,radioButtons("Episeparator", "Select epidemiological file separator",
+                                                    choices = list("Tab" = "\t", "Comma" = ",", "semicolon" = ";"), selected = "\t", inline = TRUE)),
+                              selectInput(inputId = "DateFormat", 
+                                          label = "Select a date format", 
+                                          choices = c("%Y%m%d","%Y-%m-%d","%Y/%m/%d","%d-%m-%Y","%d/%m/%Y"),
+                                          selected = "South America /"),
                               fileInput(inputId = "emetadata", h4("Upload Epidemiological CSV File"), 
                                         accept=c('text/csv',
                                                  'text/comma-separated-values,text/plain',
                                                  '.csv','.tsv')),
-                              actionButton(inputId = "Run Analysis", 
+                              actionButton(inputId = "RunAnalysis", 
                                            label = h4(icon(name = "file-import"),
                                                       "Run Analysis"),
                                            width = "200px")
                        ),
                        
-                       column(6, 
+                       column(8, 
                               shinycssloaders::withSpinner(
                                 DT::dataTableOutput("tabla"), type = 7, color.background = "white")
                        ),
-                       column(2, 
-                              "A ASD asd asda sda sdasdasdasdasdasdasd"
-                       )
+                       
+                       column(8,
+                              shinycssloaders::withSpinner(
+                                tableOutput("metadataTest"), type = 7, color.background = "white")
+                       ),
+                       tags$style(".fa-check {color:#1AC20B}"),
+                       tags$style(".fa-grip-lines {color:#E87722}"),
+                       tags$style(".fa-exclamation {color:#F31507}"),
 )
 
 
@@ -65,10 +75,7 @@ MapStadictics <- tabPanel( "Statistics",
                                                                   end    = "2022-01-25")      
                                          ),
                                          column(4,
-                                                #selectInput(inputId = "variante",
-                                                #              label = "Select a variant (VOC-VOI)",
-                                                #              choices = c("Total","Alpha","Beta","Lambda","Gamma", "Epsilon", "Eta","Iota","Kappa","Mu","Zeta","Delta","Omicron","NO VOC-VOI"),
-                                                #              selected = "Total"),
+                                                
                                                 uiOutput("variants"),
                                                 
                                          ),
@@ -121,16 +128,20 @@ Analysis <- tabPanel(
                                choices = list("k_means " = "k_means", "Location" = "Location"), selected = "Location")),
          column(6,radioButtons("transpose", "Transpose matrix",
                                choices = list("region_row" = "region_row", "lineages_row" = "lineages_row"), selected = "region_row")),
-         sliderInput("clusters", label = "Nº Clusters", min = 1, 
-                     max = 8, value = 2 ),
+         column(5, numericInput("clusters", label = "Nº Clusters", min = 1, 
+                                max = 8, value = 2 )),
+         column(6, numericInput("mfrecuency", label = "Minimun frecuency", min = 1, 
+                                max = 30, value = 1 )),
          selectInput(inputId = "method", 
                      label = "Distances method", 
                      choices = c("euclidean","maximum","manhattan","binary","minkowski"),
                      selected = ""),
-         numericInput("mfrecuency", label = "Minimun frecuency", min = 1, 
-                      max = 30, value = 1 ),
          
-  )
+         
+         
+  ),
+  column(5, shinycssloaders::withSpinner(plotlyOutput("mutation"), type = 3, color.background = "white", color = "green")),
+  
 )
 
 

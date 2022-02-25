@@ -1,0 +1,12 @@
+TEST,RESULT,STATUS
+Location column presence,,
+Lineage column presence,,
+Date column presence,,
+Variants column presence,,
+Sustitution AA column presence ,,
+Population column presence in geojson,,
+Different locations between metadata and geojson,,
+Different locations between metadata and epidemiological data,,
+Comparation Location metadata = geojson ,,
+Comparation column location metadata = epidemiological,,
+Date range epidemiolgical ⊆ metadata,,

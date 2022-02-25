@@ -2,7 +2,7 @@
 "Virus.name","strain"
 "Accession.ID","ID"
 "Collection.date","date"
-"Location","region"
+"Location","location"
 "Host","Host"
 "Additional.location.information","AdditionalLoc"
 "Sampling.strategy","Sampling"
