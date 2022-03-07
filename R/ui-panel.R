@@ -38,9 +38,9 @@ UploadData <- tabPanel("Upload Data",
                                         accept=c('text/csv',
                                                  'text/comma-separated-values,text/plain',
                                                  '.csv','.tsv')),
-                              actionButton(inputId = "RunAnalysis", 
+                              actionButton(inputId = "RunTest", 
                                            label = h4(icon(name = "file-import"),
-                                                      "Run Analysis"),
+                                                      "Run test"),
                                            width = "200px")
                        ),
                        
@@ -49,10 +49,10 @@ UploadData <- tabPanel("Upload Data",
                                 DT::dataTableOutput("tabla"), type = 7, color.background = "white")
                        ),
                        
-                       column(8,
-                              shinycssloaders::withSpinner(
-                                tableOutput("metadataTest"), type = 7, color.background = "white")
-                       ),
+                       # column(8,
+                       #        shinycssloaders::withSpinner(
+                       #          tableOutput("metadataTest"), type = 7, color.background = "white")
+                       # ),
                        tags$style(".fa-check {color:#1AC20B}"),
                        tags$style(".fa-grip-lines {color:#E87722}"),
                        tags$style(".fa-exclamation {color:#F31507}"),
@@ -141,7 +141,8 @@ Analysis <- tabPanel(
          
   ),
   column(5, shinycssloaders::withSpinner(plotlyOutput("mutation"), type = 3, color.background = "white", color = "green")),
-  
+  column(5, shinycssloaders::withSpinner(plotlyOutput("perfil_mutations"), type = 3, color.background = "white", color = "green")),
+  column(5, shinycssloaders::withSpinner(DT::dataTableOutput("mutation_tabla"), type = 3, color.background = "white", color = "green")),
 )
 
 

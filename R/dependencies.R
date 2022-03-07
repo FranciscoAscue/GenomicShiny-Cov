@@ -26,7 +26,7 @@ missingPackages <- function(pkg){
 dependencies <- c("shiny","shinycssloaders","pheatmap","plotly","fossil",
                   "remotes","dplyr","rgdal","sp","sf","geojsonsf","DT","htmlwidgets",
                   "leaflet","leaflet.minicharts","viridisLite","viridis",
-                  "RColorBrewer","rjson","lubridate")
+                  "RColorBrewer","rjson")
 
 ################################################################################
 # Package R dependencies
@@ -40,8 +40,14 @@ for(i in dependencies){
 if( !is.element("epical",rownames(installed.packages() ) ) ){
   remotes::install_github("chrismerkord/epical")
 }
-#sf::sf_use_s2(FALSE)
+
+sf::sf_use_s2(FALSE)
+
 library(epical)
 library(splines)
+library(splitstackshape)
+library(stringr)
+library(tidyverse)
+library(ggplot2)
 ################################################################################
 

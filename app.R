@@ -97,6 +97,8 @@ server <- function(input, output){
     }else{
       metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
       metadata <- metadata %>% filter(nchar(as.character(date)) == 10)
+      metadata <- add_epi_week(metadata, "date", system = "cdc")
+      metadata$Date <- epi_week_date(metadata$epi_week,metadata$epi_year,system = "cdc")
     }
     return(metadata)
   })
@@ -216,17 +218,36 @@ server <- function(input, output){
   })
   
   mutation_data <- reactive({
-    data <- mutations(meta(),xmin = input$heatmapDate[1], xmax = input$heatmapDate[2], input$mfrecuency )
+      data <- mutations(meta(),xmin = input$heatmapDate[1], xmax = input$heatmapDate[2], input$mfrecuency )
+  })
+  
+  mutatation_change <- reactive({
+    
+    heatplot  <- split_lineages(meta(), "BA.1", "Spike_", 15 )
+    return(list(heatmap_mutations = heatplot$heatmap, mutations_table = heatplot$table))
+    
   })
   
   ############################################################ Output ####################################################################################  
+  dataModal <- function(failed = FALSE) {
+    modalDialog(
+      # numericInput("datatest", label = "Choose number test", min = 1, 
+      #              max = 11, value = NULL),
+   
+      tableOutput("metadataTest"),
+      
+      footer = tagList(
+        modalButton("Ok"),
+      )
+    )
+  }
+  
+  observeEvent(input$RunTest, {
+    showModal(dataModal())
+  })
   
   output$metadataTest <- renderTable({
-    input$RunAnalysis
-    
-    isolate({
       MetadataTest()
-    })
   }, sanitize.text.function = function(x) x)
   
   
@@ -281,8 +302,6 @@ server <- function(input, output){
   })
   
   output$hist <- renderPlotly({ 
-    #plot_ly(hist_data(), x = ~Date , y = ~Frecuency, name = input$lineage, type = 'bar', color = I("light blue"),
-    #            hoverinfo = ~Frecuency, text = ~paste("CDC week:", epi_week)) 
     hist_plot(hist_data(), lineage = input$lineage) 
   })
   
@@ -291,15 +310,12 @@ server <- function(input, output){
   })
   
   output$variants <- renderUI({
-    # If missing input, return to avoid error later in function
     if(is.null(input$metadata))
       return()
     
-    # Get the data set with the appropriate name
     Vocvoi <- c("Total")
     Vocvoi <- append(Vocvoi, unique(meta()$VOC.VOI))
     
-    # Create the checkboxes and select them all by default
     selectInput(inputId = "Variant", 
                 label = "Select a variant (VOC-VOI)", 
                 choices = as.list(Vocvoi),
@@ -307,11 +323,9 @@ server <- function(input, output){
   })
   
   output$selectLocation <- renderUI({
-    # If missing input, return to avoid error later in function
     if(input$selectInput == "Custom")
       return()
     
-    # Create the checkboxes and select them all by default
     selectInput(inputId = "Location", 
                 label = "Select a Location", 
                 choices = as.data.frame(LocationCountry$Location, col.names = "Location"),
@@ -335,14 +349,28 @@ server <- function(input, output){
   
   
   output$mutation <- renderPlotly({
-    fig <- plot_ly(mutation_data(),x = ~week_date,
-                   y = ~freq, type = 'scatter', name=~mutation,mode = 'lines') 
-    fig
-  })
+      fig <- plot_ly(mutation_data(),x = ~week_date,
+                     y = ~freq, type = 'scatter', name=~mutation,mode = 'lines') 
+      fig
+    })
   
   output$tabla <- DT::renderDataTable(meta(),
                                       options = list(scrollX = TRUE),
                                       rownames = FALSE)
+
+  output$mutation_tabla <- DT::renderDataTable(datatable( mutatation_change()$mutations_table,
+                                        options = list(scrollX = TRUE),
+                                        rownames = FALSE) %>% 
+                                          # Format data columns based on the values of hidden logical columns
+                                          formatStyle(columns = colnames(mutatation_change()$mutations_table),
+                                                      backgroundColor = styleEqual(c(1,0),c("green", "red"))))
+  
+  output$perfil_mutations <- renderPlotly({ 
+    fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles, fill = count, text=gene)) + scale_fill_gradient(low="white", high="red") +
+     geom_tile() + theme_bw()
+    ggplotly(fig)
+    
+  })
   
 }
 
