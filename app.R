@@ -217,10 +217,7 @@ server <- function(input, output){
     data <- metadata_test(metadata = meta(), geojson = geojson()$map, epidemio = epidem_data())
   })
   
-  mutation_data <- reactive({
-      data <- mutations(meta(),xmin = input$heatmapDate[1], xmax = input$heatmapDate[2], input$mfrecuency )
-  })
-  
+
   mutatation_change <- reactive({
     
     heatplot  <- split_lineages(meta(), "BA.1", "Spike_", 15 )
@@ -347,13 +344,7 @@ server <- function(input, output){
                 selected = "Total")
   })
   
-  
-  output$mutation <- renderPlotly({
-      fig <- plot_ly(mutation_data(),x = ~week_date,
-                     y = ~freq, type = 'scatter', name=~mutation,mode = 'lines') 
-      fig
-    })
-  
+
   output$tabla <- DT::renderDataTable(meta(),
                                       options = list(scrollX = TRUE),
                                       rownames = FALSE)

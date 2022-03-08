@@ -140,7 +140,6 @@ Analysis <- tabPanel(
          
          
   ),
-  column(5, shinycssloaders::withSpinner(plotlyOutput("mutation"), type = 3, color.background = "white", color = "green")),
   column(5, shinycssloaders::withSpinner(plotlyOutput("perfil_mutations"), type = 3, color.background = "white", color = "green")),
   column(5, shinycssloaders::withSpinner(DT::dataTableOutput("mutation_tabla"), type = 3, color.background = "white", color = "green")),
 )

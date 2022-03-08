@@ -90,44 +90,6 @@ freq_voc_voi <- function(data_1, lin){
   
 }
 
-#read data#
-mutations <- function(data,xmin= "2021-01-01", xmax="2022-02-25" ,freq = 50,variant="Omicron"){
-  
-  data <- data[data$VOC.VOI == variant,] 
-  data <- data %>% filter(date >= xmin, date <= xmax)
-  #data$week_date <- epi_week_date(data$epi_week,data$epi_year,system="cdc")
-  data <- as.data.frame(data)
-  #data$dec_date <- decimal_date(ymd(data$Date))
-  
-
-  #separate by commas#
-  elements <- unlist(strsplit(data$Substitutions, ","))
-  a <- sort(unique(elements))
-  b <- grep("Spike", a, value = TRUE)
-  
-  #prepare the loop#
-  
-  h <- c() 
-  j <- c()
-  for (i in 1:length(b)){
-    h <- append(h,data[grep(b[i],data$Substitutions),21])
-    j <- append(j,rep(b[i],length(grep(b[i],data$Substitutions))))
-  }
-  
-  k <- data.frame(h,j)
-  l <- k%>%group_by(h,j)%>%summarise(n=n())
-  #plot#
-  l <- as.data.frame(l)
-  names(l) <- c("week_date","mutation","freq")
-  
-  mut_freqs <- data.frame(table(k$j))
-  mut_freqs$perc <- (mut_freqs$Freq/nrow(data))*100
-  mut_selec <- mut_freqs[mut_freqs$perc >= freq,1]
-  mut_freqs2 <- mut_freqs[order(-mut_freqs$perc),]
-  
-  m <- l[l$mutation %in% mut_selec,]
-  return(m) 
-}
 
 split_lineages <- function(tabla,lineage1,gene,val){ # Main function
   
