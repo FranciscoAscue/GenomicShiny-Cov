@@ -217,6 +217,9 @@ server <- function(input, output){
     data <- metadata_test(metadata = meta(), geojson = geojson()$map, epidemio = epidem_data())
   })
   
+  mutation_data <- reactive({
+      data <- mutations(meta(),xmin = input$heatmapDate[1], xmax = input$heatmapDate[2], input$mfrecuency )
+  })
 
   mutatation_change <- reactive({
     
@@ -348,7 +351,13 @@ server <- function(input, output){
   output$tabla <- DT::renderDataTable(meta(),
                                       options = list(scrollX = TRUE),
                                       rownames = FALSE)
-
+                                     
+ output$mutation <- renderPlotly({
+      fig <- plot_ly(mutation_data(),x = ~week_date,
+                     y = ~freq, type = 'scatter', name=~mutation,mode = 'lines') 
+      fig
+    })
+  
   output$mutation_tabla <- DT::renderDataTable(datatable( mutatation_change()$mutations_table,
                                         options = list(scrollX = TRUE),
                                         rownames = FALSE) %>% 
