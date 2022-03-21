@@ -143,8 +143,6 @@ server <- function(input, output){
     
   })
   
-  
-  
   leaflet_data <- reactive({
     map <- geojson()$map
     cities <- as.data.frame(st_coordinates(st_centroid(map)))
@@ -221,13 +219,7 @@ server <- function(input, output){
       data <- mutations(meta(),xmin = input$heatmapDate[1], xmax = input$heatmapDate[2], input$mfrecuency )
   })
 
-  mutatation_change <- reactive({
-    
-    heatplot  <- split_lineages(meta(), "BA.1", "Spike_", 15 )
-    return(list(heatmap_mutations = heatplot$heatmap, mutations_table = heatplot$table))
-    
-  })
-  
+
   ############################################################ Output ####################################################################################  
   dataModal <- function(failed = FALSE) {
     modalDialog(
@@ -357,20 +349,6 @@ server <- function(input, output){
                      y = ~freq, type = 'scatter', name=~mutation,mode = 'lines') 
       fig
     })
-  
-  output$mutation_tabla <- DT::renderDataTable(datatable( mutatation_change()$mutations_table,
-                                        options = list(scrollX = TRUE),
-                                        rownames = FALSE) %>% 
-                                          # Format data columns based on the values of hidden logical columns
-                                          formatStyle(columns = colnames(mutatation_change()$mutations_table),
-                                                      backgroundColor = styleEqual(c(1,0),c("green", "red"))))
-  
-  output$perfil_mutations <- renderPlotly({ 
-    fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles, fill = count, text=gene)) + scale_fill_gradient(low="white", high="red") +
-     geom_tile() + theme_bw()
-    ggplotly(fig)
-    
-  })
   
 }
 
