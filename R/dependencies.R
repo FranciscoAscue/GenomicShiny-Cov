@@ -45,9 +45,5 @@ sf::sf_use_s2(FALSE)
 
 library(epical)
 library(splines)
-library(splitstackshape)
-library(stringr)
-library(tidyverse)
-library(ggplot2)
 ################################################################################
 
