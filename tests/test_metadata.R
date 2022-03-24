@@ -4,7 +4,7 @@ metadata_test <- function(metadata, geojson, epidemio){
   for(i in c("location","lineage","date","VOC.VOI","Substitutions", "Population") ){
     
     if( i == "Population"){
-      if(i %in% colnames(geojson) ){
+      if(is.element(i,colnames(geojson)) ){
         test_table$RESULT[cnt] <- TRUE
         test_table$STATUS[cnt] <- as.character(icon("check","fa-solid"))
       }else{
@@ -12,7 +12,7 @@ metadata_test <- function(metadata, geojson, epidemio){
         test_table$STATUS[cnt] <- as.character(icon("exclamation","fa-solid"))
       }
     }else{
-      if(i %in% colnames(metadata) ){
+      if(is.element(i, colnames(metadata)) ){
         test_table$RESULT[cnt] <- TRUE
         test_table$STATUS[cnt] <- as.character(icon("check","fa-solid"))
       }else{
@@ -20,19 +20,18 @@ metadata_test <- function(metadata, geojson, epidemio){
         test_table$STATUS[cnt] <- as.character(icon("exclamation","fa-solid"))
       }
     }
-    
     cnt = cnt + 1
   }
   
-  if(length(setdiff(toupper(metadata$location), toupper(geojson$Location))) >= 1){
+  if(length(setdiff(toupper(unique(metadata$location)), toupper(geojson$Location))) >= 1){
     test_table$RESULT[7] <- TRUE
-    test_table$STATUS[7] <- as.character(icon("check","fa-solid"))
+    test_table$STATUS[7] <- as.character(icon("exclamation","fa-solid"))
   }else{
     test_table$RESULT[7] <- FALSE
-    test_table$STATUS[7] <- as.character(icon("exclamation","fa-solid"))
+    test_table$STATUS[7] <- as.character(icon("check","fa-solid"))
   }
   
-  if(length(setdiff(toupper(metadata$location), toupper(epidemio$Location))) >= 1){
+  if(length(setdiff(toupper(unique(metadata$location)), toupper(unique(epidemio$Location)))) >= 1){
     test_table$RESULT[8] <- TRUE
     test_table$STATUS[8] <- as.character(icon("exclamation","fa-solid"))
   }else{
@@ -56,7 +55,8 @@ metadata_test <- function(metadata, geojson, epidemio){
     test_table$STATUS[10] <- as.character(icon("exclamation","fa-solid"))
   }
   
-  if(length(geojson$Location) == length(unique(metadata$location))){
+  if((max(epidemio$Date) > max(metadata$date)) 
+     & (min(epidemio$Date) < min(metadata$date)) ){
     test_table$RESULT[11] <- TRUE
     test_table$STATUS[11] <- as.character(icon("check","fa-solid"))
   }else{

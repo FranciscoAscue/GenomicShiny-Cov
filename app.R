@@ -120,7 +120,7 @@ server <- function(input, output){
   datamap <- reactive({
     req(input$Variant)
     map <- geojson()
-    metadata <- as.data.frame(meta())
+    metadata <- meta()
     metadata <- metadata %>% filter( date >= input$Daterange[1],
                                      date <= input$Daterange[2] )
     if(input$Variant == "Total"){
@@ -132,13 +132,13 @@ server <- function(input, output){
     }
     
     if(input$Escala == "linear"){
-      conteo <- metadata %>% group_by(location) %>% summarise( n = n())
+      count_region <- metadata %>% group_by(location) %>% summarise( n = n())
     } else{
-      conteo <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
+      count_region <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
     }
-    conteo$location <- toupper(conteo$location)
-    colnames(conteo) <- c("Location", "N")
-    Merge_data <- inner_join(map, conteo , by  = "Location")
+    count_region$location <- toupper(count_region$location)
+    colnames(count_region) <- c("Location", "N")
+    Merge_data <- merge(map, count_region , by  = "Location")
     return(list(df = Merge_data, pal = pal))
     
   })
@@ -198,7 +198,7 @@ server <- function(input, output){
       summarise(n = n())
     names(counts) <- c("location", "lineage", "Freq")
     counts <- counts %>% filter(Freq >= input$mfrecuency)
-    counts$Freq <- log10(counts$Freq)
+    #counts$Freq <- log10(counts$Freq)
     #counts$Freq <- round(counts$Freq, digits = 3)
     counts <- as.data.frame(counts)
     cuadro_motivo <- create.matrix(counts, tax.name = "location",
@@ -214,16 +214,18 @@ server <- function(input, output){
   
   MetadataTest <- reactive({
     data <- metadata_test(metadata = meta(), 
-                          geojson = geojson()$map, 
+                          geojson = geojson(), 
                           epidemio = epidem_data())
   })
   
   mutation_data <- reactive({
+    req(input$Lineages)
     data <- mutations(meta(),freq = input$pfrecuency, gene =  input$Gene, lineage=input$Lineages)
   })
   
   mutatation_change <- reactive({
-    
+    req(input$Gene)
+    req(input$Lineages)
     heatplot  <- split_lineages(meta(), input$Lineages, input$Gene, input$pfrecuency )
     return(list(mutations_list = heatplot$mutations, 
                 heatmap_mutations = heatplot$heatmap, mutations_table = heatplot$table))
@@ -277,8 +279,9 @@ server <- function(input, output){
   
 
   
-  output$heatmap <- renderPlot(execOnResize = FALSE,{
-    heatmap_plot(heatmap_data(), input$Kmeans, input$clusters, input$method)
+  output$heatmap <- renderPlotly({
+    plot_ly(x = colnames(heatmap_data()), y = rownames(heatmap_data()), 
+            z = heatmap_data() , type = "heatmap")
   })
   
   output$lineplot <- renderPlotly({ 

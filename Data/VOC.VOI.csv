@@ -1,5 +1,5 @@
 VOC.VOI,Lineages
-"Alpha","\<B.1.1.7\>"
+"Alpha","\<B.1.1.7.*"
 "Alpha","Q.*"
 "Beta","B.1.351.*"
 "Gamma","P.1.*"

@@ -129,37 +129,32 @@ MapStadictics <- tabPanel(
 Analysis <- tabPanel(
   "Analysis",
   column(12, 
-  column(5, shinycssloaders::withSpinner(plotOutput("heatmap"), type = 3, color.background = "white", color = "green")),
+  column(5, shinycssloaders::withSpinner(plotlyOutput("heatmap"), type = 3, 
+                                         color.background = "white", color = "green")),
   column(2,
          dateRangeInput("heatmapDate", "Select date range",
                         start  = "2021-06-01",
                         end    = "2022-01-27"),
-         column(6,radioButtons("Kmeans", "kmeans clusters",
-                               choices = list("k_means " = "k_means", "Location" = "Location"), selected = "Location")),
-         column(6,radioButtons("transpose", "Transpose matrix",
-                               choices = list("region_row" = "region_row", "lineages_row" = "lineages_row"), selected = "region_row")),
-         column(5, numericInput("clusters", label = "Nº Clusters", min = 1, 
-                                max = 8, value = 2 )),
-         column(6, numericInput("mfrecuency", label = "Minimun frecuency", min = 1, 
-                                max = 30, value = 1 )),
-         
-         selectInput(inputId = "method", 
-                     label = "Distances method", 
-                     choices = c("euclidean","maximum","manhattan","binary","minkowski"),
-                     selected = "")
-         
+         column(12,radioButtons("transpose", "Transpose matrix",
+                               choices = list("region_row" = "region_row", 
+                                              "lineages_row" = "lineages_row"), 
+                               selected = "region_row", inline = TRUE)),
+         column(12, numericInput("mfrecuency", label = "Minimun frecuency", min = 1, 
+                                max = 30, value = 1 ))
   ),
-    column(5, shinycssloaders::withSpinner(DT::dataTableOutput("mutation_tabla"), type = 3, color.background = "white", color = "green"))
+    column(5, shinycssloaders::withSpinner(DT::dataTableOutput("mutation_tabla"), 
+                                           type = 3, color.background = "white", color = "green"))
   ),
   
   column(12,
-  column(5, shinycssloaders::withSpinner(plotlyOutput("perfil_mutations"), type = 3, color.background = "white", color = "green")),
+  column(5, shinycssloaders::withSpinner(plotlyOutput("perfil_mutations"), 
+                                         type = 3, color.background = "white", color = "green")),
   column(2,
          
          column(12, h2(" ")),
          
-         numericInput("pfrecuency", label = "Minimun frecuency", min = 1, 
-                      max = 30, value = 1 ),
+         numericInput("pfrecuency", label = "Minimun frecuency", 
+                      min = 1, max = 30, value = 1 ),
          
          uiOutput("selectLineages"),
          selectInput(inputId = "Gene", 
@@ -167,7 +162,8 @@ Analysis <- tabPanel(
                      choices = c("Spike_","N_","NSP16_","NS3_","NSP4_"),
                      selected = "")
   ),
-  column(5, shinycssloaders::withSpinner(plotlyOutput("mutation"), type = 3, color.background = "white", color = "green"))
+  column(5, shinycssloaders::withSpinner(plotlyOutput("mutation"), 
+                                         type = 3, color.background = "white", color = "green"))
   )
 )
 
