@@ -1,6 +1,6 @@
-if( !is.element("RMySQL",rownames(installed.packages() ) ) ){
-  install.packages("RMySQL")
-}
+##if( !is.element("RMySQL",rownames(installed.packages() ) ) ){
+##  install.packages("RMySQL")
+##}
 
 library(RMySQL)
 

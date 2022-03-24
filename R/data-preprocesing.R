@@ -1,15 +1,14 @@
-################################################################################
-# Preprocesing data
-################################################################################
+#### Preprocesing data
+
 LocationCountry <- read.csv("Data/Location-country.txt", header = TRUE, sep = ";")
 col <- read.csv("Data/colnames.csv", header = TRUE)
 
 Added_VocVoi <- function(metadata){
   voc_voi <- metadata$Lineage
   lineage2var <- read.csv("Data/VOC.VOI.csv")
-  
   for(i in 1:length(lineage2var$Lineages)){
-    voc_voi <- gsub(lineage2var$Lineages[i], lineage2var$VOC.VOI[i], voc_voi)
+    voc_voi <- gsub(lineage2var$Lineages[i], 
+                    lineage2var$VOC.VOI[i], voc_voi)
   }
   metadata$VOC.VOI <- voc_voi
   return(metadata)
@@ -17,17 +16,17 @@ Added_VocVoi <- function(metadata){
 
 metadata_preprosesing  <- function(metadata, region, country, geoLocation){
   
-  metadata$Location <- gsub(region,"", metadata$Location, fixed = T) 
-  metadata$Location <- gsub(country,"", metadata$Location, fixed = T)
+  metadata$Location <- gsub(region,"", metadata$Location, 
+                            fixed = T)
+  metadata$Location <- gsub(country,"", metadata$Location, 
+                            fixed = T)
   metadata$Location <- gsub("\\/.*","", metadata$Location)
-  metadata$Location <- trimws(metadata$Location, which = "both", whitespace = "[ \t\r\n]")
+  metadata$Location <- trimws(metadata$Location, 
+                              which = "both", whitespace = "[ \t\r\n]")
   metadata$Location <- toupper(metadata$Location)
   geoLocation$Location <- toupper(geoLocation$Location)
-  
   Locations <- unique(metadata$Location)
-  
   if(length(Locations) != length(geoLocation$Location)){
-    warning("Different numbers of locations!!")
     dff <- setdiff(unique(metadata$Location), geoLocation$Location)
     for( i in dff){
       metadata <- metadata %>% filter(Location != i)
@@ -35,31 +34,25 @@ metadata_preprosesing  <- function(metadata, region, country, geoLocation){
   }else{
     message("Pass")
   }
+  
   metadata <- Added_VocVoi(metadata)
   metadata <- metadata %>% filter(nchar(as.character(Collection.date)) == 10)
-  metadata <- add_epi_week(metadata, "Collection.date", system = "cdc")
-  metadata$Date <- epi_week_date(metadata$epi_week,metadata$epi_year,system = "cdc")
-  metadata$AA.Substitutions = str_replace_all(metadata$AA.Substitutions, pattern = c("\\(" = "", "\\)"= ""))
-  
+  metadata <- add_epi_week(metadata, 
+                           "Collection.date", system = "cdc")
+  metadata$Date <- epi_week_date(metadata$epi_week, 
+                                 metadata$epi_year,system = "cdc")
+  metadata$AA.Substitutions = str_replace_all(metadata$AA.Substitutions, 
+                                              pattern = c("\\(" = "", "\\)"= ""))
   return(metadata)
 }
 
 stackvariant <- function(data, mindate, maxdate, ngenomes, varline){
   
-#  inter <- function(data){
-#    data <- data %>% filter(date >= mindate, date <= maxdate)
-#    data <- add_epi_week(data, "date", system = "cdc")
-#    data$Date <-  epi_week_date(data$epi_week, data$epi_year, system = "cdc")
-#    return(data)
-#}
-  
   if( varline == "Lineages"){
-    #data <- inter(data)
     data_1 <- data %>% group_by(Date, epi_week,  lineage) %>% summarise( n = n()) %>%
       mutate(Frecuency = n / sum(n))
     
   }else{
-    #data <- inter(data)
     data_1 <- data %>% group_by(Date,epi_week,  VOC.VOI) %>% summarise( n = n()) %>%
       mutate(Frecuency = n / sum(n))
   }
@@ -71,19 +64,16 @@ stackvariant <- function(data, mindate, maxdate, ngenomes, varline){
   return(data_1)
 }
 
-mutations <- function(data,xmin= "2021-01-01", xmax="2022-02-25" ,freq = 50,variant="Omicron"){
+mutations <- function(data, gene, freq = 50,lineage="BA.1"){
   
-  data <- data[data$VOC.VOI == variant,] 
-  data <- data %>% filter(date >= xmin, date <= xmax)
-  #data$week_date <- epi_week_date(data$epi_week,data$epi_year,system="cdc")
+  data <- data[data$lineage == lineage,] 
+  data <- data #%>% filter(date >= xmin, date <= xmax)
   data <- as.data.frame(data)
-  #data$dec_date <- decimal_date(ymd(data$Date))
-  
 
   #separate by commas#
   elements <- unlist(strsplit(data$Substitutions, ","))
   a <- sort(unique(elements))
-  b <- grep("Spike", a, value = TRUE)
+  b <- grep(gene, a, value = TRUE)
   
   #prepare the loop#
   
@@ -109,28 +99,25 @@ mutations <- function(data,xmin= "2021-01-01", xmax="2022-02-25" ,freq = 50,vari
   return(m) 
 }
 
+
 freq_voc_voi <- function(data_1, lin){
   
   if(is.element(lin, unique(data_1$lineage))){
     
-    # separamos por año para obtener una mejor vision
     data_1 <- data_1 %>% filter(lineage == lin)
-    #data_1$date <- as.Date(as.character(data_1$date))
-    #data_1 <- add_epi_week(data_1, "date", system = "cdc")
-    #data_1$Date <-  epi_week_date(data_1$epi_week, data_1$epi_year, system = "cdc")
-    data_1 <- data_1 %>% group_by(Date, epi_week) %>% summarise(Frecuency = n())
+    data_1 <- data_1 %>% group_by(Date, epi_week) %>% 
+      summarise(Frecuency = n())
     return(data_1)
-    
   } else{
-    return(data.frame(Date = NULL, epi_week = NULL, Frecuency = NULL))
+    return(data.frame(Date = NULL, 
+                      epi_week = NULL, 
+                      Frecuency = NULL))
   }
   
 }
 
 
 split_lineages <- function(tabla,lineage1,gene,val){ # Main function
-  
-  #tabla$date1 <- epi_week_date(tabla$epi_week,tabla$epi_year,system = "cdc")
   
   selection <- filter(tabla, lineage == lineage1)
   selection <- selection[,c("location","Substitutions","Date")] #selected columns for down analysis
@@ -149,7 +136,10 @@ split_lineages <- function(tabla,lineage1,gene,val){ # Main function
   
   # aditional steps to do dataframe to input heatmap
   newdata <- interest_mutation[ (interest_mutation$gen_select %in% profiles$gen_select), ]
-  heatmap_mutations <- newdata %>% count(newdata$gen_select,newdata$Date) 
+  
+  heatmap_mutations <- newdata %>% 
+    count(newdata$gen_select,newdata$Date) 
+  
   names(heatmap_mutations) <- c("gene","epi_week","count") ## Here is possible return value for heatmap
   
   haplotype <- c()
@@ -162,7 +152,7 @@ split_lineages <- function(tabla,lineage1,gene,val){ # Main function
   heatmap_mutations$Profiles <- haplotype
   heatmap_mutations$gene = str_replace_all(heatmap_mutations$gene,gene,"")
   #return(heatmap_mutations)
-  return(list(table = result_table, heatmap = heatmap_mutations))
+  return(list(mutations = tbl_resume, table = result_table, heatmap = heatmap_mutations))
 }
 
 all_mutations <- function(mutations,gene) {  #Function 1
@@ -190,7 +180,8 @@ all_mutations <- function(mutations,gene) {  #Function 1
 }
 
 uniq <- function(interest_mutation,val,gene){ #Function 2
-  figure <- interest_mutation %>% group_by(gen_select) %>% summarize(count=n()) %>%  filter(count > val)
+  figure <- interest_mutation %>% group_by(gen_select) %>% 
+    summarize(count=n()) %>%  filter(count > val)
   figure$hap <- sprintf("%03d", 1:nrow(figure))
   return(figure)
 }

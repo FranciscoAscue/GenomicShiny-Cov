@@ -1,18 +1,16 @@
 ################################################################# GenomicShiny-cov v.0.0.1######################################################################
 
-## Source scripts 
+#### Source scripts 
 source("R/data-preprocesing.R", local = TRUE) # Pre processing data with scripts (pacient status metadata from GISAID)
-# source("R/data-mysql.R", local = TRUE) # Optional management data from MySQL database 
 source("R/ui-panel.R", local = TRUE)
 source("R/dependencies.R", local = TRUE)
 source("config.R", local = TRUE)
 source("tests/test_metadata.R", local = TRUE)
-################################################################################################################################################################
+# source("R/data-mysql.R", local = TRUE) # Optional management data from MySQL database 
 
-## Plot functions
-# heat map of lineage frequency and location distribution 
 
-#hovertemplate = paste('CDC: %{text}', '<br>%{y:.0%}<br>')
+#### Plot functions ####
+
 line_stack_plot <-  function(data, stack){
   data <- ungroup(data)
   if(stack == "stack"){
@@ -24,17 +22,14 @@ line_stack_plot <-  function(data, stack){
                     groupnorm = "Percentaje", text = ~paste("CDC week:", Epi.Week),
                     type = 'scatter', mode ="lines")
   }
-  
   return(plot)
 }
-
 
 hist_plot <- function(data, lineage = "AY.102", ndf = 5){
   
   if(is.null(data$Date)){
     return(plot_ly(data.frame(NULL), type = "scatter", mode ="line"))
   }else{
-    
     model <- lm(Frecuency ~ ns(Date, df = ndf), data = data)
     plot <- plot_ly(data, x = ~Date , y = ~Frecuency, name = lineage, type = 'bar', color = I("light blue"),
                     hoverinfo = ~Frecuency, text = ~paste("CDC week:", epi_week)) %>%
@@ -44,7 +39,6 @@ hist_plot <- function(data, lineage = "AY.102", ndf = 5){
   
 }
 
-
 heatmap_plot <- function(data, kmns, nk, mthd) { 
   if(kmns == "k_means"){
     phmap = pheatmap(data,cluster_rows = TRUE, cluster_cols = TRUE, kmeans_k = nk, 
@@ -53,52 +47,57 @@ heatmap_plot <- function(data, kmns, nk, mthd) {
     return(phmap)
   } else{
     phmap = pheatmap(data,cluster_rows = TRUE, cluster_cols = TRUE,  
-                     clustering_distance_rows = mthd,clustering_distance_cols = mthd, 
+                     clustering_distance_rows = mthd, clustering_distance_cols = mthd, 
                      cutree_rows = nk, cutree_cols = nk, color = RColorBrewer::brewer.pal(9, "BuGn"))
     return(phmap)
   }
 }
 
-## ui shiny, source tab panel from ui-panel.R
-ui <- navbarPage("GenomicShiny-Cov", id="nav",
-                 UploadData, MapStadictics, Analysis) 
+#### ui shiny ####
+ui <- bootstrapPage( navbarPage("GenomicShiny-Cov", id="nav",
+                 UploadData, MapStadictics, Analysis) )
 
-## server shiny
+#### server shiny ####
+
 server <- function(input, output){
-  ## upload data 
+  ### upload data
+  
   # geoJSON data from URL / file
   geojson <- reactive({
     url <- input$geojsonurl
     
     if(!is.null(input$geojson)){
-      map <- geojson_sf(geojson = input$geojson$datapath)
-      map2 <- rjson::fromJSON(file= input$geojson$datapath)
-      return(list(map=map, map2 = map2))
+      map <- geojsonsf::geojson_sf(geojson = input$geojson$datapath)
+      return(map)
     }
-    
-    map <- geojson_sf(geojson = url)
-    map2 <- rjson::fromJSON(file= url)   
-    return(list(map=map, map2 = map2))
+    map <- geojsonsf::geojson_sf(geojson = url)
+    return(map)
   })
   
   # metadata upload (GISAID metadata / custom metadata) 
   meta <- reactive({
     req(input$metadata)
+    
     if(is.null(input$metadata)){
       return(NULL)
     }
     
     if(input$selectInput == "GISAID"){
       req(input$pais)
-      metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
-      metadata <- metadata_preprosesing(metadata,input$Location, input$pais, geojson()$map)
+      metadata <- read.csv(input$metadata$datapath, 
+                           sep = input$separator, header = TRUE)
+      metadata <- metadata_preprosesing(metadata,
+                                        input$Location, input$pais, 
+                                        geojson())
       colnames(metadata) <- col$NEW
       #metadata$date <- as.Date(metadata$date)
     }else{
-      metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
+      metadata <- read.csv(input$metadata$datapath, 
+                           sep = input$separator, header = TRUE)
       metadata <- metadata %>% filter(nchar(as.character(date)) == 10)
       metadata <- add_epi_week(metadata, "date", system = "cdc")
-      metadata$Date <- epi_week_date(metadata$epi_week,metadata$epi_year,system = "cdc")
+      metadata$Date <- epi_week_date(metadata$epi_week,
+                                     metadata$epi_year,system = "cdc")
     }
     return(metadata)
   })
@@ -109,24 +108,27 @@ server <- function(input, output){
       return(NULL)
     }
     
-    emetadata <- read.csv(input$emetadata$datapath, sep = input$Episeparator)
-    emetadata$Date <- as.Date(as.character(emetadata$Date),format = input$DateFormat)
+    emetadata <- read.csv(input$emetadata$datapath,
+                          sep = input$Episeparator)
+    emetadata$Date <- as.Date(as.character(emetadata$Date),
+                              format = input$DateFormat)
     return(emetadata)
   })
   
+
+  
   datamap <- reactive({
-    
-    metadata <- as.data.frame(meta())
-    metadata <- metadata %>% filter( date >= input$Daterange[1] , date <= input$Daterange[2] )
-    centers <- as.data.frame(st_coordinates(st_centroid(geojson()$map)))
-    x <- mean(centers$X)
-    y <- mean(centers$Y)
     req(input$Variant)
+    map <- geojson()
+    metadata <- as.data.frame(meta())
+    metadata <- metadata %>% filter( date >= input$Daterange[1],
+                                     date <= input$Daterange[2] )
     if(input$Variant == "Total"){
       metadata <- metadata
+      pal <- colorNumeric(  palette = "Reds", NULL)
     } else { 
-      a <- input$Variant
-      metadata <- metadata %>% filter(VOC.VOI == a)
+      metadata <- metadata %>% filter(VOC.VOI == input$Variant)
+      pal <- colorNumeric(  palette = "BuPu", NULL)
     }
     
     if(input$Escala == "linear"){
@@ -134,27 +136,27 @@ server <- function(input, output){
     } else{
       conteo <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
     }
-    
     conteo$location <- toupper(conteo$location)
     colnames(conteo) <- c("Location", "N")
-    NOM <- conteo$Location
-    N <- conteo$N
-    return(list(df2 = NOM, df3 = N, df4 = "Reeds", x = x, y = y))
+    Merge_data <- inner_join(map, conteo , by  = "Location")
+    return(list(df = Merge_data, pal = pal))
     
   })
-  
+    
   leaflet_data <- reactive({
-    map <- geojson()$map
+    map <- geojson()
     cities <- as.data.frame(st_coordinates(st_centroid(map)))
     map$Location <- toupper(map$Location)
     cities$location <- map$Location
     metadata <- as.data.frame(meta())
     metadata$location <- toupper(metadata$location)
     metadata <- metadata %>% filter(date >= input$Daterange[1] , date <= input$Daterange[2])
+    
     for( var in unique(metadata$VOC.VOI)){
       temp <- metadata %>% filter(VOC.VOI == var) %>% group_by(location) %>% summarise( !!paste0(var) := n())
       cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
     }
+    
     total <- metadata %>% group_by(location) %>% summarise(total = n())
     cities <- merge(x  = cities, y = total, by = 'location', all = TRUE )
     
@@ -170,8 +172,8 @@ server <- function(input, output){
     var <- cities[,4:(length(cities)-1)]
     total <- cities$total
     return( list( df = Merge_data, df2 = pal, long = long, lat = lat, var = var, total = total))
-    
   })
+  
   
   lineage_var_data <- reactive({
     metadata <- as.data.frame(meta())
@@ -211,32 +213,32 @@ server <- function(input, output){
   })
   
   MetadataTest <- reactive({
-    
-    data <- metadata_test(metadata = meta(), geojson = geojson()$map, epidemio = epidem_data())
+    data <- metadata_test(metadata = meta(), 
+                          geojson = geojson()$map, 
+                          epidemio = epidem_data())
   })
   
   mutation_data <- reactive({
-      data <- mutations(meta(),xmin = input$heatmapDate[1], xmax = input$heatmapDate[2], input$mfrecuency )
+    data <- mutations(meta(),freq = input$pfrecuency, gene =  input$Gene, lineage=input$Lineages)
   })
   
-mutatation_change <- reactive({
+  mutatation_change <- reactive({
     
-    heatplot  <- split_lineages(meta(), "BA.1", "Spike_", 15 )
-    return(list(heatmap_mutations = heatplot$heatmap, mutations_table = heatplot$table))
+    heatplot  <- split_lineages(meta(), input$Lineages, input$Gene, input$pfrecuency )
+    return(list(mutations_list = heatplot$mutations, 
+                heatmap_mutations = heatplot$heatmap, mutations_table = heatplot$table))
     
- })
-
+  })
+  
   ############################################################ Output ####################################################################################  
+  
   dataModal <- function(failed = FALSE) {
     modalDialog(
-      # numericInput("datatest", label = "Choose number test", min = 1, 
-      #              max = 11, value = NULL),
-   
-      tableOutput("metadataTest"),
-      
-      footer = tagList(
-        modalButton("Ok"),
-      )
+      shinycssloaders::withSpinner(
+        tableOutput("metadataTest"),
+        type = 7, color.background = "white"),
+      easyClose = TRUE,
+      footer = NULL
     )
   }
   
@@ -244,36 +246,15 @@ mutatation_change <- reactive({
     showModal(dataModal())
   })
   
-  output$metadataTest <- renderTable({
-      MetadataTest()
-  }, sanitize.text.function = function(x) x)
-  
-  
-  output$map <- renderPlotly({
+  output$map <- renderLeaflet({
     
-    fig <- plot_ly()
-    fig <- fig %>% add_trace(
-      type="choroplethmapbox",
-      geojson=geojson()$map2,
-      locations=datamap()$df2,
-      z=datamap()$df3,
-      colorscale=datamap()$df4,
-      reversescale =F,
-      marker=list(line=list(
-        width=0),
-        opacity=1
-      ),
-      featureidkey= "properties.Location"
-    )
-    fig <- fig %>% colorbar(title = "Nº\nGenomes")
-    fig <- fig %>% layout(
-      mapbox=list(
-        style="carto-positron",
-        zoom =4,
-        center=list(lon= datamap()$x, lat=datamap()$y)), height = 500
-    )
-    fig
-    
+    basemap <- leaflet(datamap()$df) %>% 
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      addPolygons(stroke = FALSE, smoothFactor = 0.4, fillOpacity = 1,
+                  fillColor = ~datamap()$pal(N),
+                  label = ~paste0(Location, ": ", formatC(N, big.mark = ","))) %>%
+      addLegend(pal = datamap()$pal, values = ~N, title = "Nº\nGenomes", opacity = 1.0) 
+    basemap
   })
   
   output$leaflet_map <- renderLeaflet({
@@ -289,10 +270,15 @@ mutatation_change <- reactive({
         chartdata = leaflet_data()$var, 
         opacity = 0.8,
         colorPalette = brewer.pal(n = 10, name = "Paired"), 
-        width = 50 * sqrt(leaflet_data()$total) / sqrt(max(leaflet_data()$total)), transitionTime = 0) %>% 
-      addMiniMap(toggleDisplay = TRUE, position = "bottomleft") 
+        width = 50 * sqrt(leaflet_data()$total) / sqrt(max(leaflet_data()$total)), transitionTime = 0) 
     
     basemap
+  })
+  
+
+  
+  output$heatmap <- renderPlot(execOnResize = FALSE,{
+    heatmap_plot(heatmap_data(), input$Kmeans, input$clusters, input$method)
   })
   
   output$lineplot <- renderPlotly({ 
@@ -303,11 +289,64 @@ mutatation_change <- reactive({
     hist_plot(hist_data(), lineage = input$lineage) 
   })
   
-  output$heatmap <- renderPlot({
-    heatmap_plot(heatmap_data(), input$Kmeans, input$clusters, input$method)
+  output$mutation <- renderPlotly({
+    fig <- plot_ly(mutation_data(),x = ~week_date,
+                   y = ~freq, type = 'scatter', 
+                   name=~mutation,mode = 'lines') 
+    fig
   })
   
-  output$variants <- renderUI({
+  output$perfil_mutations <- renderPlotly({ 
+    fig <- ggplot(mutatation_change()$heatmap_mutations, 
+                  aes(x = epi_week, y=Profiles,fill = count, text=gene)) + 
+      scale_fill_gradient(low="white", high="red") +
+      geom_tile() + theme_bw()
+    ggplotly(fig)
+    
+  })
+  
+  output$metadataTest <- renderTable({
+    MetadataTest()
+  }, sanitize.text.function = function(x) x)
+
+  output$tabla <- DT::renderDataTable(meta(), 
+              options = list(scrollX = TRUE),rownames = FALSE)
+  
+  output$mutation_tabla <- DT::renderDataTable(
+    datatable( mutatation_change()$mutations_table, 
+               options = list(scrollX = TRUE), 
+               rownames = FALSE) %>% formatStyle(
+                 columns = colnames(mutatation_change()$mutations_table),
+                 backgroundColor = styleEqual(c(1,0),c("green", "red"))))
+  
+  
+  #### renderUI panels and selectInput ####
+  
+  output$selectLocation <- renderUI({
+    if(input$selectInput == "Custom")
+      return()
+    
+    selectInput(inputId = "Location", 
+                label = "Select a Location", 
+                choices = as.data.frame(LocationCountry$Location, 
+                                        col.names = "Location"),
+                selected = "South America /")
+  })
+  
+  output$selectCountry <- renderUI({
+    
+    if(is.null(input$Location) | input$selectInput == "Custom")
+      return()
+    Fill <- filter(LocationCountry, Location == input$Location)
+    Lista <- as.data.frame(strsplit(Fill$Country,","), 
+                           col.names = "Country")
+    selectInput(inputId = "pais", 
+                label = "Select a Country", 
+                choices = Lista,
+                selected = "Total")
+  })
+  
+  output$selectVariants <- renderUI({
     if(is.null(input$metadata))
       return()
     
@@ -320,57 +359,17 @@ mutatation_change <- reactive({
                 selected = "Total")
   })
   
-  output$selectLocation <- renderUI({
-    if(input$selectInput == "Custom")
+  output$selectLineages <- renderUI({
+    if(is.null(input$metadata))
       return()
     
-    selectInput(inputId = "Location", 
-                label = "Select a Location", 
-                choices = as.data.frame(LocationCountry$Location, col.names = "Location"),
-                selected = "South America /")
+    selectInput(inputId = "Lineages", 
+                label = "Select a lineage", 
+                choices = as.list(unique(meta()$lineage)),
+                selected = NA)
+    
   })
   
-  output$Country <- renderUI({
-    # If missing input, return to avoid error later in function
-    if(is.null(input$Location) | input$selectInput == "Custom")
-      return()
-    Fill <- filter(LocationCountry, Location == input$Location)
-    # Get the data set with the appropriate name
-    Lista <- as.data.frame(strsplit(Fill$Country,","), col.names = "Country")
-    
-    # Create the checkboxes and select them all by default
-    selectInput(inputId = "pais", 
-                label = "Select a Country", 
-                choices = Lista,
-                selected = "Total")
-  })
-  
-
-  output$tabla <- DT::renderDataTable(meta(),
-                                      options = list(scrollX = TRUE),
-                                      rownames = FALSE)
-                                     
- output$mutation <- renderPlotly({
-      fig <- plot_ly(mutation_data(),x = ~week_date,
-                     y = ~freq, type = 'scatter', name=~mutation,mode = 'lines') 
-      fig
-    })
-  
-   output$mutation_tabla <- DT::renderDataTable(datatable( mutatation_change()$mutations_table,
-                                        options = list(scrollX = TRUE),
-                                        rownames = FALSE) %>% 
-                                          # Format data columns based on the values of hidden logical columns
-                                          formatStyle(columns = colnames(mutatation_change()$mutations_table),
-                                                      backgroundColor = styleEqual(c(1,0),c("green", "red"))))
-  
-  output$perfil_mutations <- renderPlotly({ 
-    fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles, fill = count, text=gene)) + scale_fill_gradient(low="white", high="red") +
-     geom_tile() + theme_bw()
-    ggplotly(fig)
-    
-	})
-                                   
-                                     
 }
 
 shinyApp(ui = ui, server = server)
