@@ -122,59 +122,65 @@ server <- function(input, output){
   })
     
   var_datamap <- reactive({
-    map <- geojson()
-    cities <- as.data.frame(st_coordinates(st_centroid(map)))
-    map$Location <- toupper(map$Location)
-    cities$location <- map$Location
-    metadata <- as.data.frame(meta())
-    metadata$location <- toupper(metadata$location)
-    metadata <- metadata %>% filter(date >= input$Daterange[1] , date <= input$Daterange[2])
+
+    datamap <- variant_distribution(map = geojson(), epidem = epidem_data(), metadata = meta(), input$Daterange[1], input$Daterange[2])
     
-    for( var in unique(metadata$VOC.VOI)){
-      temp <- metadata %>% filter(VOC.VOI == var) %>% group_by(location) %>% summarise( !!paste0(var) := n())
-      cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
-    }
-    
-    total <- metadata %>% group_by(location) %>% summarise(total = n())
-    cities <- merge(x  = cities, y = total, by = 'location', all = TRUE )
-    
-    conteo <- epidem_data() %>% filter(Date >= input$Daterange[1], Date <= input$Daterange[2])
-    conteo <- conteo %>% group_by(Location) %>% summarise( n = n())
-    conteo$Location <- toupper(conteo$Location)
-    colnames(conteo) <- c("Location", "N")
-    Merge_data <- inner_join(map,conteo, by = 'Location' )
-    Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
-    pal <- colorNumeric(  palette = "Greys", NULL)
-    long <- cities$X
-    lat <- cities$Y
-    var <- cities[,4:(length(cities)-1)]
-    total <- cities$total
-    return( list( df = Merge_data, pal = pal, long = long, lat = lat, var = var, total = total))
+#cities <- as.data.frame(st_coordinates(st_centroid(map)))
+#    map$Location <- toupper(map$Location)
+#    cities$location <- map$Location
+#    metadata <- as.data.frame(meta())
+#    metadata$location <- toupper(metadata$location)
+#    metadata <- metadata %>% filter(date >= input$Daterange[1] , date <= input$Daterange[2])
+#    
+#    for( var in unique(metadata$VOC.VOI)){
+#      temp <- metadata %>% filter(VOC.VOI == var) %>% group_by(location) %>% summarise( !!paste0(var) := n())
+#      cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
+#    }
+#    
+#    total <- metadata %>% group_by(location) %>% summarise(total = n())
+#    cities <- merge(x  = cities, y = total, by = 'location', all = TRUE )
+#    
+#    conteo <- epidem_data() %>% filter(Date >= input$Daterange[1], Date <= input$Daterange[2])
+#    conteo <- conteo %>% group_by(Location) %>% summarise( n = n())
+#    conteo$Location <- toupper(conteo$Location)
+#    colnames(conteo) <- c("Location", "N")
+#    Merge_data <- inner_join(map,conteo, by = 'Location' )
+#    Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
+#    pal <- colorNumeric(  palette = "Greys", NULL)
+#    long <- cities$X
+#    lat <- cities$Y
+#    var <- cities[,4:(length(cities)-1)]
+#    total <- cities$total
+    return( list( df = datamap$df, pal = datamap$pal, long = datamap$long, lat = datamap$lat, var = datamap$var, total = datamap$total))
   })
   
   sampling_datamap <- reactive({
     req(input$Variant)
-    map <- geojson()
-    metadata <- meta()
-    metadata <- metadata %>% filter( date >= input$Daterange[1],
-                                     date <= input$Daterange[2] )
-    if(input$Variant == "Total"){
-      metadata <- metadata
-      pal <- colorNumeric(  palette = "Reds", NULL)
-    } else { 
-      metadata <- metadata %>% filter(VOC.VOI == input$Variant)
-      pal <- colorNumeric(  palette = "BuPu", NULL)
-    }
-    
-    if(input$Escala == "linear"){
-      count_region <- metadata %>% group_by(location) %>% summarise( n = n())
-    } else{
-      count_region <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
-    }
-    count_region$location <- toupper(count_region$location)
-    colnames(count_region) <- c("Location", "N")
-    Merge_data <- merge(map, count_region , by  = "Location")
-    return(list(df = Merge_data, pal = pal))
+    data_map <- sampling_distribution(map = geojson(), metadata = meta(), mindate = input$Daterange[1], maxdate = input$Daterange[2], input$Variant, input$Escala)
+
+
+
+
+  #metadata <- metadata %>% filter( date >= input$Daterange[1],
+  #                                   date <= input$Daterange[2] )
+  #  if(input$Variant == "Total"){
+  #    metadata <- metadata
+  #    pal <- colorNumeric(  palette = "Reds", NULL)
+  #  } else { 
+  #    metadata <- metadata %>% filter(VOC.VOI == input$Variant)
+  #    pal <- colorNumeric(  palette = "BuPu", NULL)
+  #  }
+  #  
+  #  if(input$Escala == "linear"){
+  #    count_region <- metadata %>% group_by(location) %>% summarise( n = n())
+  #  } else{
+  #    count_region <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
+  #  }
+  #  count_region$location <- toupper(count_region$location)
+  #  colnames(count_region) <- c("Location", "N")
+  #  Merge_data <- merge(map, count_region , by  = "Location")
+#
+    return(list(df = data_map$df, pal = data_map$pal))
     
   })
   
