@@ -14,14 +14,13 @@ source("tests/test_metadata.R", local = TRUE)
 line_stack_plot <-  function(data, stack){
   data <- ungroup(data)
   if(stack == "stack"){
-    plot <- plot_ly(data, x = ~Date, y = ~Frecuency, name = ~Select,
-                    groupnorm = "Percentaje", text = ~paste("CDC week:", Epi.Week),
-                    type = 'scatter', mode ="lines", stackgroup = 'two')
+    plot <- plot_ly(data, x = ~Date, y = ~Frecuency, name = ~Select, groupnorm = "Percentaje", 
+                    text = ~paste("CDC week:", Epi.Week), type = 'scatter', mode ="lines", stackgroup = 'two')
   }else{
-    plot <- plot_ly(data , x = ~Date, y = ~Frecuency, name = ~Select,
-                    groupnorm = "Percentaje", text = ~paste("CDC week:", Epi.Week),
-                    type = 'scatter', mode ="lines")
+    plot <- plot_ly(data , x = ~Date, y = ~Frecuency, name = ~Select, groupnorm = "Percentaje", 
+                    text = ~paste("CDC week:", Epi.Week), type = 'scatter', mode ="lines")
   }
+  
   return(plot)
 }
 
@@ -34,26 +33,26 @@ hist_plot <- function(data, lineage = "AY.102", ndf = 5){
     plot <- plot_ly(data, x = ~Date , y = ~Frecuency, name = lineage, type = 'bar', color = I("light blue"),
                     hoverinfo = ~Frecuency, text = ~paste("CDC week:", epi_week)) %>%
       add_trace(x = ~Date, y = ~fitted(model), type = "scatter", mode ="line", color = I("red"))
+    
     return(plot)
   }
   
 }
 
-leaflet_plot <- function(data, palette, titleLegend, scale=FALSE, long = FALSE, 
-                         lat = FALSE, var = FALSE, total = FALSE){
+leaflet_plot <- function(data, palette, titleLegend, scale=FALSE, long = FALSE, lat = FALSE, 
+                         var = FALSE, total = FALSE){
   
   basemap <- leaflet(data) %>% 
     addProviderTiles(providers$CartoDB.Positron) %>%
-    addPolygons(stroke = FALSE, smoothFactor = 0.4, fillOpacity = 1,
-                fillColor = ~palette(N),
+    addPolygons(stroke = FALSE, smoothFactor = 0.4, fillOpacity = 1, fillColor = ~palette(N),
                 label = ~paste0(Location, ": ", formatC(N, big.mark = ","))) %>%
     addLegend(pal = palette, values = ~N, title = titleLegend, opacity = 1.0) 
+  
   if(!isFALSE(lat) & !isFALSE(long) & !isFALSE(var) & !isFALSE(total)){
-    basemap <- basemap %>% 
-      addMinicharts(long, lat ,type = "pie",
-      chartdata = var, opacity = 0.8, 
+    basemap <- basemap %>% addMinicharts(long, lat ,type = "pie", chartdata = var, opacity = 0.8, 
       colorPalette = brewer.pal(n = ncol(var), name = "Paired"), 
       width = 50 * sqrt(total) / sqrt(max(total)), transitionTime = 0)
+    
     return(basemap)
   }
   
@@ -61,8 +60,8 @@ leaflet_plot <- function(data, palette, titleLegend, scale=FALSE, long = FALSE,
 }
 
 #### ui shiny ####
-ui <- bootstrapPage( navbarPage("GenomicShiny-Cov", id="nav",
-                 UploadData, MapStatistics, AnalysisLineages) )
+ui <- bootstrapPage( navbarPage(theme = shinytheme("flatly"), "GenomicShiny-Cov", id="nav", 
+                                UploadData, MapStatistics, AnalysisLineages) )
 
 #### server shiny ####
 
@@ -71,86 +70,58 @@ server <- function(input, output){
   
   # geoJSON data from URL / file
   geojson <- reactive({
+    
     url <- input$geojsonurl
     
     if(!is.null(input$geojson)){
       map <- geojsonsf::geojson_sf(geojson = input$geojson$datapath)
+      
       return(map)
     }
     map <- geojsonsf::geojson_sf(geojson = url)
+    
     return(map)
   })
   
   # metadata upload (GISAID metadata / custom metadata) 
   meta <- reactive({
     req(input$metadata)
-    
     if(is.null(input$metadata)){
+      
       return(NULL)
     }
     
     if(input$selectInput == "GISAID"){
       req(input$pais)
-      metadata <- read.csv(input$metadata$datapath, 
-                           sep = input$separator, header = TRUE)
-      metadata <- metadata_preprosesing(metadata,
-                                        input$Location, input$pais, 
-                                        geojson())
+      metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
+      metadata <- metadata_preprosesing(metadata, input$Location, input$pais, geojson())
       colnames(metadata) <- col$NEW
-      #metadata$date <- as.Date(metadata$date)
+      
     }else{
-      metadata <- read.csv(input$metadata$datapath, 
-                           sep = input$separator, header = TRUE)
+      metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
       metadata <- metadata %>% filter(nchar(as.character(date)) == 10)
       metadata <- add_epi_week(metadata, "date", system = "cdc")
-      metadata$Date <- epi_week_date(metadata$epi_week,
-                                     metadata$epi_year,system = "cdc")
+      
+      metadata$Date <- epi_week_date(metadata$epi_week, metadata$epi_year,system = "cdc")
     }
+    
     return(metadata)
   })
   
   epidem_data <- reactive({
     req(input$emetadata)
     if(is.null(input$emetadata)){
+      
       return(NULL)
     }
     
-    emetadata <- read.csv(input$emetadata$datapath,
-                          sep = input$Episeparator)
-    emetadata$Date <- as.Date(as.character(emetadata$Date),
-                              format = input$DateFormat)
+    emetadata <- read.csv(input$emetadata$datapath, sep = input$Episeparator)
+    emetadata$Date <- as.Date(as.character(emetadata$Date),  format = input$DateFormat)
+    
     return(emetadata)
   })
-  
-
-  
-  datamap <- reactive({
-    req(input$Variant)
-    map <- geojson()
-    metadata <- meta()
-    metadata <- metadata %>% filter( date >= input$Daterange[1],
-                                     date <= input$Daterange[2] )
-    if(input$Variant == "Total"){
-      metadata <- metadata
-      pal <- colorNumeric(  palette = "Reds", NULL)
-    } else { 
-      metadata <- metadata %>% filter(VOC.VOI == input$Variant)
-      pal <- colorNumeric(  palette = "BuPu", NULL)
-    }
     
-    if(input$Escala == "linear"){
-      count_region <- metadata %>% group_by(location) %>% summarise( n = n())
-    } else{
-      count_region <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
-    }
-    count_region$location <- toupper(count_region$location)
-    colnames(count_region) <- c("Location", "N")
-    Merge_data <- merge(map, count_region , by  = "Location")
-    return(list(df = Merge_data, pal = pal))
-    
-  })
-    
-  leaflet_data <- reactive({
+  var_datamap <- reactive({
     map <- geojson()
     cities <- as.data.frame(st_coordinates(st_centroid(map)))
     map$Location <- toupper(map$Location)
@@ -181,11 +152,36 @@ server <- function(input, output){
     return( list( df = Merge_data, pal = pal, long = long, lat = lat, var = var, total = total))
   })
   
+  sampling_datamap <- reactive({
+    req(input$Variant)
+    map <- geojson()
+    metadata <- meta()
+    metadata <- metadata %>% filter( date >= input$Daterange[1],
+                                     date <= input$Daterange[2] )
+    if(input$Variant == "Total"){
+      metadata <- metadata
+      pal <- colorNumeric(  palette = "Reds", NULL)
+    } else { 
+      metadata <- metadata %>% filter(VOC.VOI == input$Variant)
+      pal <- colorNumeric(  palette = "BuPu", NULL)
+    }
+    
+    if(input$Escala == "linear"){
+      count_region <- metadata %>% group_by(location) %>% summarise( n = n())
+    } else{
+      count_region <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
+    }
+    count_region$location <- toupper(count_region$location)
+    colnames(count_region) <- c("Location", "N")
+    Merge_data <- merge(map, count_region , by  = "Location")
+    return(list(df = Merge_data, pal = pal))
+    
+  })
   
   lineage_var_data <- reactive({
     metadata <- as.data.frame(meta())
-    #metadata$date <- as.Date(metadata$date)
-    metadata <- stackvariant(metadata, input$lineageDate[1], input$lineageDate[2], input$ngenomes, input$Varline)
+    metadata <- stackvariant(metadata, input$lineageDate[1], input$lineageDate[2], 
+                             input$ngenomes, input$Varline)
     
   })
   
@@ -238,7 +234,8 @@ server <- function(input, output){
                 heatmap_mutations = heatplot$heatmap, mutations_table = heatplot$table))
     
   })
-  ################### Output #########################
+  
+#### shiny Output ####
   
   dataModal <- function(failed = FALSE) {
     modalDialog(
@@ -255,16 +252,16 @@ server <- function(input, output){
   })
   
   output$map <- renderLeaflet({
-    basemap <- leaflet_plot(data = datamap()$df, palette = datamap()$pal, 
+    basemap <- leaflet_plot(data = sampling_datamap()$df, palette = sampling_datamap()$pal, 
                             titleLegend = "Nº\nGenomes" )   
 
   })
   
   output$leaflet_map <- renderLeaflet({
-    basemap <- leaflet_plot(data = leaflet_data()$df, palette = leaflet_data()$pal,
-                            long = leaflet_data()$long, lat = leaflet_data()$lat, 
-                            titleLegend = "Mortality rate x10⁵", var = leaflet_data()$var,
-                            total = leaflet_data()$total)
+    basemap <- leaflet_plot(data = var_datamap()$df, palette = var_datamap()$pal,
+                            long = var_datamap()$long, lat = var_datamap()$lat, 
+                            titleLegend = "Mortality rate x10⁵", var = var_datamap()$var,
+                            total = var_datamap()$total)
   })
   
 
@@ -283,17 +280,14 @@ server <- function(input, output){
   })
   
   output$mutation <- renderPlotly({
-    fig <- plot_ly(mutation_data(),x = ~week_date,
-                   y = ~freq, type = 'scatter', 
+    fig <- plot_ly(mutation_data(),x = ~week_date, y = ~freq, type = 'scatter', 
                    name=~mutation,mode = 'lines') 
     fig
   })
   
   output$perfil_mutations <- renderPlotly({ 
-    fig <- ggplot(mutatation_change()$heatmap_mutations, 
-                  aes(x = epi_week, y=Profiles,fill = count, text=gene)) + 
-      scale_fill_gradient(low="white", high="red") +
-      geom_tile() + theme_bw()
+    fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles,fill = count, text=gene)) + 
+      scale_fill_gradient(low="white", high="red") + geom_tile() + theme_bw()
     ggplotly(fig)
     
   })
@@ -326,9 +320,10 @@ server <- function(input, output){
     
     if(is.null(input$Location) | input$selectInput == "Custom")
       return()
+    
     Fill <- filter(LocationCountry, Location == input$Location)
-    Lista <- as.data.frame(strsplit(Fill$Country,","), 
-                           col.names = "Country")
+    Lista <- as.data.frame(strsplit(Fill$Country,","),col.names = "Country")
+    
     selectInput(inputId = "pais", 
                 label = "Select a Country", 
                 choices = Lista,

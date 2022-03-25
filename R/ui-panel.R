@@ -1,4 +1,4 @@
-################################################################################################################################################################
+#############################################################################################################################################
 # Ui panel
 
 
@@ -12,70 +12,54 @@ UploadData <- tabPanel("Upload Data",
                                    tags$img(src="https://nextstrain.org/static/nextstrain-logo-small-ea8c3e13e8c17436264760d638ab970e.png",
                                             width="60px",height="60px")
                               )),
-                              textInput(inputId = "geojsonurl",
-                                        label = h4("Url to Geojson (Optional)"),
-                                        value = NULL),
-                              fileInput(inputId = "geojson", h4("Upload Geojson File"), 
-                                        accept=c('.geojson',
-                                                 '.geocsv')),
+                              textInput(inputId = "geojsonurl", label = h4("Url to Geojson (Optional)"),value = NULL),
+                              
+                              fileInput(inputId = "geojson", h4("Upload Geojson File"), accept=c('.geojson','.geocsv')),
                               
                               column(3,radioButtons("selectInput", "Select input",
                                                     choices = list("GISAID" = "GISAID", "Custom Metadata" = "Custom"), 
                                                     selected = "GISAID")),
+                              
                               column(3,radioButtons("separator", "Select separator",
                                                     choices = list("Tab" = "\t", "Comma" = ","), selected = "\t")),
+                              
                               column(12, h3("")),
                               uiOutput("selectLocation"),
                               uiOutput("selectCountry"),
                               
                               fileInput(inputId = "metadata", h4("Upload metadata file (.csv/.tsv)"), 
-                                        accept=c('text/csv',
-                                                 'text/comma-separated-values,text/plain',
-                                                 '.csv','.tsv')),
+                                        accept=c('text/csv','text/comma-separated-values,text/plain', '.csv','.tsv')),
+                              
                               selectInput(inputId = "DateFormat", 
                                           label = "Select a date format", 
                                           choices = c("%Y%m%d","%Y-%m-%d","%Y/%m/%d","%d-%m-%Y","%d/%m/%Y"),
                                           selected = "South America /"),
+                              
                               column(8,radioButtons("Episeparator", "Select epidemiological file separator",
                                                     choices = list("Tab" = "\t", "Comma" = ",", "semicolon" = ";"), 
                                                     selected = "\t", inline = TRUE)),
+                              
                               fileInput(inputId = "emetadata", h4("Upload Epidemiological CSV File"), 
-                                        accept=c('text/csv',
-                                                 'text/comma-separated-values,text/plain',
-                                                 '.csv','.tsv')),
-                              actionButton(inputId = "RunTest", 
-                                           label = h4(icon(name = "file-import"),
-                                                      "Run test"),
-                                           width = "200px")
+                                        accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv','.tsv')),
+                              
+                              actionButton(inputId = "RunTest", label = h4(icon(name = "file-import"), "Run test"), width = "200px")
                        ),
                        
                        column(8, aling="center",
-                              shinycssloaders::withSpinner(
-                                DT::dataTableOutput("tabla"), type = 7, color.background = "white")
+                              shinycssloaders::withSpinner( DT::dataTableOutput("tabla"), type = 7, color.background = "white")
                        ),
-                       
-                       # column(8,
-                       #        shinycssloaders::withSpinner(
-                       #          tableOutput("metadataTest"), type = 7, color.background = "white")
-                       # ),
+
                        tags$style(".fa-check {color:#1AC20B}"),
                        tags$style(".fa-grip-lines {color:#E87722}"),
                        tags$style(".fa-exclamation {color:#F31507}"),
 )
 
-
-################################################################################################################################################################
-
-
-
-################################################################################################################################################################
 MapStatistics <- tabPanel( 
   "Statistics",
   
   column(12, 
          column(6, 
-                shinycssloaders::withSpinner(
-                  leafletOutput(outputId = "leaflet_map", height = 550))),
+                shinycssloaders::withSpinner( leafletOutput(outputId = "leaflet_map", height = 550))),
          column(6,
                 column(4,
                 column(12, dateRangeInput("Daterange", 
@@ -89,24 +73,25 @@ MapStatistics <- tabPanel(
                                                    "logarithmic" = "log"), 
                                     selected = "log", 
                                     inline = TRUE))),
-                column(8, 
-                       shinycssloaders::withSpinner(leafletOutput("map", height = 550)))
+                
+                column(8,  shinycssloaders::withSpinner(leafletOutput("map", height = 550)))
          )
   ),
   
   column(12, h3(" ")),
   column(12, 
-         column(6, 
-                shinycssloaders::withSpinner(plotlyOutput("lineplot"))),
-         column(2,
-                textInput(inputId = "lineage",
+         column(6, shinycssloaders::withSpinner(plotlyOutput("lineplot"))),
+         column(2, textInput(inputId = "lineage",
                           label = "Write a linage",
                           value = "AY.117"),
+                
                 numericInput("ngenomes", label = "Minimun genomes", min = 1, 
                              max = 30, value = 1 ),
+                
                 dateRangeInput("lineageDate", "Select date range",
                                start  = "2021-06-01",
                                end    = "2022-01-27"),
+                
                 column(4, 
                        radioButtons("stack", "Select plot",
                                     choices = list("stack" = "stack", "lines" = "lines"),
@@ -116,29 +101,25 @@ MapStatistics <- tabPanel(
                                     choices = list("VOC.VOI" = "VOC.VOI","Lineages" = "Lineages"), 
                                     selected = "VOC.VOI")),
          ),
-         column(4, 
-                shinycssloaders::withSpinner(plotlyOutput("hist")))
+         column(4, shinycssloaders::withSpinner(plotlyOutput("hist")))
   )
   
 )
 
-################################################################################################################################################################
-
-################################################################################################################################################################
-
 AnalysisLineages <- tabPanel(
   "Analysis",
+  
   column(12, 
-  column(5, shinycssloaders::withSpinner(plotlyOutput("heatmap"), type = 3, 
-                                         color.background = "white", color = "green")),
-  column(2,
-         dateRangeInput("heatmapDate", "Select date range",
+  column(5, shinycssloaders::withSpinner(plotlyOutput("heatmap"), type = 3,  color.background = "white", color = "green")),
+  column(2, dateRangeInput("heatmapDate", "Select date range",
                         start  = "2021-06-01",
                         end    = "2022-01-27"),
+         
          column(12,radioButtons("transpose", "Transpose matrix",
                                choices = list("region_row" = "region_row", 
                                               "lineages_row" = "lineages_row"), 
                                selected = "region_row", inline = TRUE)),
+         
          column(12, numericInput("mfrecuency", label = "Minimun frecuency", min = 1, 
                                 max = 30, value = 1 ))
   ),
@@ -150,7 +131,6 @@ AnalysisLineages <- tabPanel(
   column(5, shinycssloaders::withSpinner(plotlyOutput("perfil_mutations"), 
                                          type = 3, color.background = "white", color = "green")),
   column(2,
-         
          column(12, h2(" ")),
          
          numericInput("pfrecuency", label = "Minimun frecuency", 

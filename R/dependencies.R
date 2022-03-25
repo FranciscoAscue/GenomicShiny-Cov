@@ -9,6 +9,7 @@
 # . libgdal-dev
 
 ################################################################################
+
 # Install missing packages
 
 missingPackages <- function(pkg){
@@ -21,21 +22,16 @@ missingPackages <- function(pkg){
       }
     }
 }
-################################################################################
 
-dependencies <- c("shiny","shinycssloaders","pheatmap","plotly","fossil",
-                  "remotes","dplyr","rgdal","sp","sf","geojsonsf","DT","htmlwidgets",
-                  "leaflet","leaflet.minicharts","viridisLite","viridis",
-                  "RColorBrewer","stringr","tidyverse","ggplot2","splitstackshape")
+dependencies <- c("shiny","shinycssloaders","shinythemes","pheatmap","plotly","fossil", "remotes","dplyr",
+                  "rgdal","sp","sf","geojsonsf","DT","htmlwidgets", "leaflet","leaflet.minicharts",
+                  "viridisLite","viridis", "RColorBrewer","stringr","tidyverse","ggplot2","splitstackshape")
 
-################################################################################
 # Package R dependencies
-################################################################################
-for(i in dependencies){
-  missingPackages(i)
+
+for(i in dependencies){missingPackages(i)
   library(i, character.only = TRUE)
 }
-
 
 if( !is.element("epical",rownames(installed.packages() ) ) ){
   remotes::install_github("chrismerkord/epical")
