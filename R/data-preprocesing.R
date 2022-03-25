@@ -7,6 +7,7 @@ Added_VocVoi <- function(metadata){
   voc_voi <- metadata$Lineage
   lineage2var <- read.csv("Data/VOC.VOI.csv")
   for(i in 1:length(lineage2var$Lineages)){
+    
     voc_voi <- gsub(lineage2var$Lineages[i], 
                     lineage2var$VOC.VOI[i], voc_voi)
   }
@@ -21,10 +22,13 @@ metadata_preprosesing  <- function(metadata, region, country, geoLocation){
   metadata$Location <- gsub(country,"", metadata$Location, 
                             fixed = T)
   metadata$Location <- gsub("\\/.*","", metadata$Location)
+  
   metadata$Location <- trimws(metadata$Location, 
                               which = "both", whitespace = "[ \t\r\n]")
+  
   metadata$Location <- toupper(metadata$Location)
   geoLocation$Location <- toupper(geoLocation$Location)
+  
   Locations <- unique(metadata$Location)
   if(length(Locations) != length(geoLocation$Location)){
     dff <- setdiff(unique(metadata$Location), geoLocation$Location)
@@ -228,9 +232,12 @@ tbl_total <- function(tbl_resume,profiles,gene) {
       
       val <- paste0(tbl_resume$reference[i],tbl_resume$position[i],tbl_resume$change[i])
       bool <- str_detect(profiles$gen_select[y],val)
-      bools <-append(bools,bool)
+      if(bool == TRUE){
+        bools <-append(bools,tbl_resume$reference[i])
+      }else{
+        bools <-append(bools,tbl_resume$change[i])
+      }
     }
-    bools[isTRUE(bools)] <- 1
     tbl_resume[paste0(profiles$hap[y])] <- bools
   }
   return(tbl_resume)

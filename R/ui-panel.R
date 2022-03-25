@@ -69,7 +69,7 @@ UploadData <- tabPanel("Upload Data",
 
 
 ################################################################################################################################################################
-MapStadictics <- tabPanel( 
+MapStatistics <- tabPanel( 
   "Statistics",
   
   column(12, 
@@ -126,7 +126,7 @@ MapStadictics <- tabPanel(
 
 ################################################################################################################################################################
 
-Analysis <- tabPanel(
+AnalysisLineages <- tabPanel(
   "Analysis",
   column(12, 
   column(5, shinycssloaders::withSpinner(plotlyOutput("heatmap"), type = 3, 

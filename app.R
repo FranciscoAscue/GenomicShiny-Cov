@@ -39,23 +39,30 @@ hist_plot <- function(data, lineage = "AY.102", ndf = 5){
   
 }
 
-heatmap_plot <- function(data, kmns, nk, mthd) { 
-  if(kmns == "k_means"){
-    phmap = pheatmap(data,cluster_rows = TRUE, cluster_cols = TRUE, kmeans_k = nk, 
-                     clustering_distance_rows = mthd,clustering_distance_cols = mthd, 
-                     cutree_rows = nk, cutree_cols = nk, color = RColorBrewer::brewer.pal(9, "BuGn"))
-    return(phmap)
-  } else{
-    phmap = pheatmap(data,cluster_rows = TRUE, cluster_cols = TRUE,  
-                     clustering_distance_rows = mthd, clustering_distance_cols = mthd, 
-                     cutree_rows = nk, cutree_cols = nk, color = RColorBrewer::brewer.pal(9, "BuGn"))
-    return(phmap)
+leaflet_plot <- function(data, palette, titleLegend, scale=FALSE, long = FALSE, 
+                         lat = FALSE, var = FALSE, total = FALSE){
+  
+  basemap <- leaflet(data) %>% 
+    addProviderTiles(providers$CartoDB.Positron) %>%
+    addPolygons(stroke = FALSE, smoothFactor = 0.4, fillOpacity = 1,
+                fillColor = ~palette(N),
+                label = ~paste0(Location, ": ", formatC(N, big.mark = ","))) %>%
+    addLegend(pal = palette, values = ~N, title = titleLegend, opacity = 1.0) 
+  if(!isFALSE(lat) & !isFALSE(long) & !isFALSE(var) & !isFALSE(total)){
+    basemap <- basemap %>% 
+      addMinicharts(long, lat ,type = "pie",
+      chartdata = var, opacity = 0.8, 
+      colorPalette = brewer.pal(n = ncol(var), name = "Paired"), 
+      width = 50 * sqrt(total) / sqrt(max(total)), transitionTime = 0)
+    return(basemap)
   }
+  
+  return(basemap)
 }
 
 #### ui shiny ####
 ui <- bootstrapPage( navbarPage("GenomicShiny-Cov", id="nav",
-                 UploadData, MapStadictics, Analysis) )
+                 UploadData, MapStatistics, AnalysisLineages) )
 
 #### server shiny ####
 
@@ -165,13 +172,13 @@ server <- function(input, output){
     conteo$Location <- toupper(conteo$Location)
     colnames(conteo) <- c("Location", "N")
     Merge_data <- inner_join(map,conteo, by = 'Location' )
-    Merge_data$Ratio <- (Merge_data$N/Merge_data$Population)*100000
+    Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
     pal <- colorNumeric(  palette = "Greys", NULL)
     long <- cities$X
     lat <- cities$Y
     var <- cities[,4:(length(cities)-1)]
     total <- cities$total
-    return( list( df = Merge_data, df2 = pal, long = long, lat = lat, var = var, total = total))
+    return( list( df = Merge_data, pal = pal, long = long, lat = lat, var = var, total = total))
   })
   
   
@@ -231,8 +238,7 @@ server <- function(input, output){
                 heatmap_mutations = heatplot$heatmap, mutations_table = heatplot$table))
     
   })
-  
-  ############################################################ Output ####################################################################################  
+  ################### Output #########################
   
   dataModal <- function(failed = FALSE) {
     modalDialog(
@@ -249,32 +255,16 @@ server <- function(input, output){
   })
   
   output$map <- renderLeaflet({
-    
-    basemap <- leaflet(datamap()$df) %>% 
-      addProviderTiles(providers$CartoDB.Positron) %>%
-      addPolygons(stroke = FALSE, smoothFactor = 0.4, fillOpacity = 1,
-                  fillColor = ~datamap()$pal(N),
-                  label = ~paste0(Location, ": ", formatC(N, big.mark = ","))) %>%
-      addLegend(pal = datamap()$pal, values = ~N, title = "Nº\nGenomes", opacity = 1.0) 
-    basemap
+    basemap <- leaflet_plot(data = datamap()$df, palette = datamap()$pal, 
+                            titleLegend = "Nº\nGenomes" )   
+
   })
   
   output$leaflet_map <- renderLeaflet({
-    basemap <- leaflet(leaflet_data()$df) %>% 
-      addTiles() %>%
-      addPolygons(stroke = FALSE, smoothFactor = 0.4, fillOpacity = 1,
-                  fillColor = ~leaflet_data()$df2(Ratio),
-                  label = ~paste0(Location, ": ", formatC(Ratio, big.mark = ","))) %>%
-      addLegend(pal = leaflet_data()$df2, values = ~Ratio, title = "Mortality rate x10⁵", opacity = 1.0) %>%  
-      addMinicharts(
-        leaflet_data()$long, leaflet_data()$lat,
-        type = "pie",
-        chartdata = leaflet_data()$var, 
-        opacity = 0.8,
-        colorPalette = brewer.pal(n = 10, name = "Paired"), 
-        width = 50 * sqrt(leaflet_data()$total) / sqrt(max(leaflet_data()$total)), transitionTime = 0) 
-    
-    basemap
+    basemap <- leaflet_plot(data = leaflet_data()$df, palette = leaflet_data()$pal,
+                            long = leaflet_data()$long, lat = leaflet_data()$lat, 
+                            titleLegend = "Mortality rate x10⁵", var = leaflet_data()$var,
+                            total = leaflet_data()$total)
   })
   
 
@@ -315,12 +305,8 @@ server <- function(input, output){
   output$tabla <- DT::renderDataTable(meta(), 
               options = list(scrollX = TRUE),rownames = FALSE)
   
-  output$mutation_tabla <- DT::renderDataTable(
-    datatable( mutatation_change()$mutations_table, 
-               options = list(scrollX = TRUE), 
-               rownames = FALSE) %>% formatStyle(
-                 columns = colnames(mutatation_change()$mutations_table),
-                 backgroundColor = styleEqual(c(1,0),c("green", "red"))))
+  output$mutation_tabla <- DT::renderDataTable(mutatation_change()$mutations_table, 
+               options = list(scrollX = TRUE), rownames = FALSE)
   
   
   #### renderUI panels and selectInput ####
