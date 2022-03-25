@@ -75,6 +75,26 @@ freq_voc_voi <- function(data, lin){
   
 }
 
+matrix_distribution <- function(metadata, mindate, maxdate, frecuency, transp){
+  
+  data <- as.data.frame(metadata)
+  data$date <- as.Date(data$date)
+  data <- data %>% filter(date >= mindate, date <= maxdate)
+  
+  counts <- data %>% group_by(location, lineage) %>% summarise(n = n())
+  names(counts) <- c("location", "lineage", "Freq")
+  counts <- counts %>% filter(Freq >= frecuency)
+  counts <- as.data.frame(counts)
+  
+  cuadro_motivo <- create.matrix(counts, tax.name = "location", locality = "lineage",
+                                 abund.col = "Freq", abund = TRUE)
+  
+  if( transp == "lineages_row" ){
+    return(t(as.data.frame(cuadro_motivo)))
+  }
+  return(cuadro_motivo)
+}
+
 variant_distribution <- function(map, metadata, epidem,  mindate, maxdate){
   cities <- as.data.frame(st_coordinates(st_centroid(map)))
   map$Location <- toupper(map$Location)
@@ -225,7 +245,6 @@ do_table <- function(profiles,gene){
   
   profiles$gen_select = str_replace_all(profiles$gen_select,gene,"")
   c <- strsplit(as.character(profiles$gen_select,gene),',')
-  
   for (i in 1:nrow(profiles)) {
     new_vector <- append(new_vector,c[[i]])
   }
@@ -240,13 +259,11 @@ do_table <- function(profiles,gene){
     
     pos <- stringr::str_extract(y, "\\d+")
     mut <- strsplit(y, split = pos)
-    
     reference <- append(reference,mut[[1]][1])
     position <- append(position,as.numeric(pos))
     change <- append(change,mut[[1]][2])
     
   }
-  
   table_1 <- data.frame(reference, change, position)
   table_1 <- table_1[order(table_1$position),]
   return(table_1)
@@ -260,7 +277,6 @@ tbl_total <- function(tbl_resume,profiles,gene) {
   for (y in 1:nrow(profiles)){
     bools <- c()
     for (i in 1:nrow(tbl_resume)){
-      
       val <- paste0(tbl_resume$reference[i],tbl_resume$position[i],tbl_resume$change[i])
       bool <- str_detect(profiles$gen_select[y],val)
       
@@ -270,7 +286,6 @@ tbl_total <- function(tbl_resume,profiles,gene) {
         bools <-append(bools,tbl_resume$change[i])
       }
     }
-    
     tbl_resume[paste0(profiles$hap[y])] <- bools
   }
   return(tbl_resume)

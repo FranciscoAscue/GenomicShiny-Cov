@@ -67,7 +67,6 @@ ui <- bootstrapPage( navbarPage(theme = shinytheme("flatly"), "GenomicShiny-Cov"
 
 server <- function(input, output){
   ### upload data
-  
   # geoJSON data from URL / file
   geojson <- reactive({
     
@@ -108,6 +107,8 @@ server <- function(input, output){
     return(metadata)
   })
   
+  # epidemio metadata
+  
   epidem_data <- reactive({
     req(input$emetadata)
     if(is.null(input$emetadata)){
@@ -120,66 +121,23 @@ server <- function(input, output){
     
     return(emetadata)
   })
-    
+  
+  #### shiny reactive -> Output ### 
+  
   var_datamap <- reactive({
 
-    datamap <- variant_distribution(map = geojson(), epidem = epidem_data(), metadata = meta(), input$Daterange[1], input$Daterange[2])
+    datamap <- variant_distribution(map = geojson(), epidem = epidem_data(), 
+                                    metadata = meta(), input$Daterange[1], input$Daterange[2])
     
-#cities <- as.data.frame(st_coordinates(st_centroid(map)))
-#    map$Location <- toupper(map$Location)
-#    cities$location <- map$Location
-#    metadata <- as.data.frame(meta())
-#    metadata$location <- toupper(metadata$location)
-#    metadata <- metadata %>% filter(date >= input$Daterange[1] , date <= input$Daterange[2])
-#    
-#    for( var in unique(metadata$VOC.VOI)){
-#      temp <- metadata %>% filter(VOC.VOI == var) %>% group_by(location) %>% summarise( !!paste0(var) := n())
-#      cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
-#    }
-#    
-#    total <- metadata %>% group_by(location) %>% summarise(total = n())
-#    cities <- merge(x  = cities, y = total, by = 'location', all = TRUE )
-#    
-#    conteo <- epidem_data() %>% filter(Date >= input$Daterange[1], Date <= input$Daterange[2])
-#    conteo <- conteo %>% group_by(Location) %>% summarise( n = n())
-#    conteo$Location <- toupper(conteo$Location)
-#    colnames(conteo) <- c("Location", "N")
-#    Merge_data <- inner_join(map,conteo, by = 'Location' )
-#    Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
-#    pal <- colorNumeric(  palette = "Greys", NULL)
-#    long <- cities$X
-#    lat <- cities$Y
-#    var <- cities[,4:(length(cities)-1)]
-#    total <- cities$total
-    return( list( df = datamap$df, pal = datamap$pal, long = datamap$long, lat = datamap$lat, var = datamap$var, total = datamap$total))
+    return( list( df = datamap$df, pal = datamap$pal, long = datamap$long, lat = datamap$lat, 
+                  var = datamap$var, total = datamap$total))
   })
   
   sampling_datamap <- reactive({
     req(input$Variant)
-    data_map <- sampling_distribution(map = geojson(), metadata = meta(), mindate = input$Daterange[1], maxdate = input$Daterange[2], input$Variant, input$Escala)
+    data_map <- sampling_distribution(map = geojson(), metadata = meta(), mindate = input$Daterange[1], 
+                                      maxdate = input$Daterange[2], input$Variant, input$Escala)
 
-
-
-
-  #metadata <- metadata %>% filter( date >= input$Daterange[1],
-  #                                   date <= input$Daterange[2] )
-  #  if(input$Variant == "Total"){
-  #    metadata <- metadata
-  #    pal <- colorNumeric(  palette = "Reds", NULL)
-  #  } else { 
-  #    metadata <- metadata %>% filter(VOC.VOI == input$Variant)
-  #    pal <- colorNumeric(  palette = "BuPu", NULL)
-  #  }
-  #  
-  #  if(input$Escala == "linear"){
-  #    count_region <- metadata %>% group_by(location) %>% summarise( n = n())
-  #  } else{
-  #    count_region <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
-  #  }
-  #  count_region$location <- toupper(count_region$location)
-  #  colnames(count_region) <- c("Location", "N")
-  #  Merge_data <- merge(map, count_region , by  = "Location")
-#
     return(list(df = data_map$df, pal = data_map$pal))
     
   })
@@ -195,36 +153,17 @@ server <- function(input, output){
     
     metadata <- as.data.frame(meta())
     metadata$date <- as.Date(metadata$date)
-    data_lin <- freq_voc_voi(metadata, input$lineage)
-    data_lin
+    data_lineage <- freq_voc_voi(metadata, input$lineage)
+    data_lineage
   })
   
   heatmap_data <- reactive({
-    data <- as.data.frame(meta())
-    data$date <- as.Date(data$date)
-    data <- data %>% filter(date >= input$heatmapDate[1], date <= input$heatmapDate[2])
-    counts <- data %>% group_by(location, lineage) %>% 
-      summarise(n = n())
-    names(counts) <- c("location", "lineage", "Freq")
-    counts <- counts %>% filter(Freq >= input$mfrecuency)
-    #counts$Freq <- log10(counts$Freq)
-    #counts$Freq <- round(counts$Freq, digits = 3)
-    counts <- as.data.frame(counts)
-    cuadro_motivo <- create.matrix(counts, tax.name = "location",
-                                   locality = "lineage",
-                                   abund.col = "Freq",
-                                   abund = TRUE)
-    
-    if(input$transpose == "lineages_row"){
-      return(t(as.data.frame(cuadro_motivo)))
-    }
-    cuadro_motivo
+    cuadro_motivo <- matrix_distribution(metadata = meta(), mindate = input$heatmapDate[1], 
+                                         maxdate = input$heatmapDate[2], frecuency = input$mfrecuency, transp = input$transpose )
   })
   
   MetadataTest <- reactive({
-    data <- metadata_test(metadata = meta(), 
-                          geojson = geojson(), 
-                          epidemio = epidem_data())
+    data <- metadata_test(metadata = meta(),  geojson = geojson(), epidemio = epidem_data())
   })
   
   mutation_data <- reactive({
@@ -236,8 +175,8 @@ server <- function(input, output){
     req(input$Gene)
     req(input$Lineages)
     heatplot  <- split_lineages(meta(), input$Lineages, input$Gene, input$pfrecuency )
-    return(list(mutations_list = heatplot$mutations, 
-                heatmap_mutations = heatplot$heatmap, mutations_table = heatplot$table))
+    
+    return(list(mutations_list = heatplot$mutations,  heatmap_mutations = heatplot$heatmap, mutations_table = heatplot$table))
     
   })
   
