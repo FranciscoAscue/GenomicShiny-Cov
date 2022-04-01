@@ -1,37 +1,42 @@
-## Welcome to GitHub Pages
+# GenomicShiny-Cov
 
-You can use the [editor on GitHub](https://github.com/FranciscoAscue/GenomicShiny-Cov/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+GenomicShiny-Cov is a shiny application for genomics surveillance. This application takes tsv files and geojson to plot interactive graphs to show the epidemiological and genomics status of the pandemic.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### Markdown
+## System requirements
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+ubuntu 20.04 / 21.10 / 22.04  
+debian 10  
+Install dependencies  
+  - libprotobuf-dev  
+  - libjq-dev  
+  - protobuf-compiler  
+  - libudunits2-dev  
+  - libgdal-dev  
 
-```markdown
-Syntax highlighted code block
+## Installation and runing locally
 
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```r 
+git clone https://github.com/FranciscoAscue/GenomicShiny-Cov.git
+runApp(launch.browser = TRUE) 
 ```
+## Runing from github 
 
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
+```r
+install.packages("shiny")
+shiny::runGitHub("GenomicShiny-Cov","FranciscoAscue", launch.browser = TRUE)
+```
+## Input data
 
-### Jekyll Themes
+### GISAID patient status .tsv   
+The app can upload metadata of patient status downloaded from the international database GISAID
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/FranciscoAscue/GenomicShiny-Cov/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+### Epidemiological data of positive cases and death reported .tsv/.csv   
+The epidemiological of positive cases have two principal headers label: Date of report and Location 
+
+### Vectorial map in GeoJson format   
+The vectorial map can be upload from URL and directly in geojson format  
 
 ### Support or Contact
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+Having trouble with GenomicShiny-Cov? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) 
