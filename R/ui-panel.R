@@ -55,7 +55,7 @@ UploadData <- tabPanel("Upload Data",
 )
 
 MapStatistics <- tabPanel( 
-  "Statistics",
+  "Descriptive epidemiology",
   
   column(12, 
          column(6, 
@@ -107,7 +107,7 @@ MapStatistics <- tabPanel(
 )
 
 AnalysisLineages <- tabPanel(
-  "Analysis",
+  "Mutation surveillance",
   
   column(12, 
   column(5, shinycssloaders::withSpinner(plotlyOutput("heatmap"), type = 3,  color.background = "white", color = "green")),
