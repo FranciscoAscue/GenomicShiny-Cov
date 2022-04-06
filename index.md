@@ -4,29 +4,9 @@ GenomicShiny-Cov is a shiny application for genomics surveillance. This applicat
 
 ![](img/g676.png)
 
-## System requirements
 
-ubuntu 20.04 / 21.10 / 22.04  
-debian 10  
-Install dependencies  
-  - libprotobuf-dev  
-  - libjq-dev  
-  - protobuf-compiler  
-  - libudunits2-dev  
-  - libgdal-dev  
+see [Documentation]("doc.md")
 
-## Installation and runing locally
-
-```r 
-git clone https://github.com/FranciscoAscue/GenomicShiny-Cov.git
-runApp(launch.browser = TRUE) 
-```
-## Runing from github 
-
-```r
-install.packages("shiny")
-shiny::runGitHub("GenomicShiny-Cov","FranciscoAscue", launch.browser = TRUE)
-```
 ## Input data
 
 ### GISAID patient status .tsv   
