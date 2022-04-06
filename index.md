@@ -5,7 +5,7 @@ GenomicShiny-Cov is a shiny application for genomics surveillance. This applicat
 ![](img/g676.png)
 
 
-see [Documentation]("doc.md")
+see [Documentation](doc.md)
 
 ## Input data
 
