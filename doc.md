@@ -57,7 +57,7 @@ runApp(launch.browser = TRUE)
 ________________________________________________________________________________________________________
 #### Input Files and Usage
 
-![](img/wf.png)
+<img align="center" width="400" src="img/wf.png">
 
 | File  |  Description  |  i.e. |
 |:----------:|:-------------:|:-----------:|
