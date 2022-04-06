@@ -72,6 +72,11 @@ MapStatistics <- tabPanel(
                                     choices = list("linear" = "linear", 
                                                    "logarithmic" = "log"), 
                                     selected = "log", 
+                                    inline = TRUE)),
+                column(12,radioButtons("switch", "Switch Lineages / VOC-VOI",
+                                    choices = list("lineage" = "lineage",
+                                                   "VocVoi" = "VocVoi"),
+                                    selected = "VocVoi",
                                     inline = TRUE))),
                 
                 column(8,  shinycssloaders::withSpinner(leafletOutput("map", height = 550)))

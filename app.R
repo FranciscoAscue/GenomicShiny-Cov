@@ -127,7 +127,7 @@ server <- function(input, output){
   var_datamap <- reactive({
 
     datamap <- variant_distribution(map = geojson(), epidem = epidem_data(), 
-                                    metadata = meta(), input$Daterange[1], input$Daterange[2])
+                                    metadata = meta(), input$Daterange[1], input$Daterange[2],input$switch)
     
     return( list( df = datamap$df, pal = datamap$pal, long = datamap$long, lat = datamap$lat, 
                   var = datamap$var, total = datamap$total))

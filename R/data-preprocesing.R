@@ -95,16 +95,23 @@ matrix_distribution <- function(metadata, mindate, maxdate, frecuency, transp){
   return(cuadro_motivo)
 }
 
-variant_distribution <- function(map, metadata, epidem,  mindate, maxdate){
+variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switch = "VocVoi"){
   cities <- as.data.frame(st_coordinates(st_centroid(map)))
   map$Location <- toupper(map$Location)
   cities$location <- map$Location
   metadata$location <- toupper(metadata$location)
   metadata <- metadata %>% filter(date >= mindate , date <= maxdate)
   
-  for( var in unique(metadata$VOC.VOI)){
-    temp <- metadata %>% filter(VOC.VOI == var) %>% group_by(location) %>% summarise( !!paste0(var) := n())
-    cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
+  if( switch == "VocVoi" ){
+    for( var in unique(metadata$VOC.VOI)){
+      temp <- metadata %>% filter(VOC.VOI == var) %>% group_by(location) %>% summarise( !!paste0(var) := n())
+      cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
+    }
+  }else{
+    for( var in unique(metadata$lineage)){
+      temp <- metadata %>% filter(lineage == var) %>% group_by(location) %>% summarise( !!paste0(var) := n())
+      cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
+    }
   }
   
   total <- metadata %>% group_by(location) %>% summarise(total = n())
