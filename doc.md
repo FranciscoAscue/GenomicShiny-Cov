@@ -17,7 +17,7 @@ Install dependencies by aptitude:
 `libgdal-dev`  
 
 
-#### Instalation 
+### Instalation 
 
 To run locally the application must be installed first `shiny` package:
 ```r 
@@ -55,7 +55,7 @@ Download the code from the following [LINK](https://github.com/FranciscoAscue/Ge
 runApp(launch.browser = TRUE) 
 ```
 ________________________________________________________________________________________________________
-#### Input Files and Usage
+### Input Files and Usage
 
 <img align="center" width="400" src="img/wf.png">
 
