@@ -231,8 +231,8 @@ server <- function(input, output){
   })
   
   output$perfil_mutations <- renderPlotly({ 
-    fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles,fill = count, text=gene)) + 
-      scale_fill_gradient(low="white", high="red") + geom_tile() + theme_bw()
+    fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles,fill = count)) + 
+      scale_fill_gradient(low="#D5DBDB", high="red") + geom_tile() + theme_bw()
     ggplotly(fig)
     
   })

@@ -271,6 +271,7 @@ do_table <- function(profiles,gene){
     change <- append(change,mut[[1]][2])
     
   }
+  reference <- gsub("ins","-", reference, fixed = TRUE)
   table_1 <- data.frame(reference, change, position)
   table_1 <- table_1[order(table_1$position),]
   return(table_1)
@@ -288,9 +289,9 @@ tbl_total <- function(tbl_resume,profiles,gene) {
       bool <- str_detect(profiles$gen_select[y],val)
       
       if(bool == TRUE){
-        bools <-append(bools,tbl_resume$reference[i])
-      }else{
         bools <-append(bools,tbl_resume$change[i])
+      }else{
+        bools <-append(bools,NA)
       }
     }
     tbl_resume[paste0(profiles$hap[y])] <- bools
