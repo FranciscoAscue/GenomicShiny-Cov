@@ -144,7 +144,9 @@ AnalysisLineages <- tabPanel(
          uiOutput("selectLineages"),
          selectInput(inputId = "Gene", 
                      label = "Select Gene", 
-                     choices = c("Spike_","N_","NSP16_","NS3_","NSP4_"),
+                     choices = c("Spike_","N_","NSP1_","NSP2_","NSP3_","NSP4_","NSP5_","NSP6_","NSP7_","NSP8_","NSP9_",
+                                 "NSP10_","NSP12_","NSP13_","NSP14_","NSP15_","NSP16_","NS3a_","NS3b_","E_","M_","NS6_",
+                                 "NS7a_","NS7b_","NS8_","NS9a_","NS9b_","NS10_"),
                      selected = "")
   ),
   column(5, shinycssloaders::withSpinner(plotlyOutput("mutation"), 
