@@ -41,7 +41,6 @@ hist_plot <- function(data, lineage = "AY.102", ndf = 5){
 
 leaflet_plot <- function(data, palette, titleLegend, scale=FALSE, long = FALSE, lat = FALSE, 
                          var = FALSE, total = FALSE){
-  
   basemap <- leaflet(data) %>% 
     addProviderTiles(providers$CartoDB.Positron) %>%
     addPolygons(stroke = FALSE, smoothFactor = 0.4, fillOpacity = 1, fillColor = ~palette(N),
@@ -57,6 +56,20 @@ leaflet_plot <- function(data, palette, titleLegend, scale=FALSE, long = FALSE, 
   }
   
   return(basemap)
+}
+
+
+heatmap_mutations_plot <- function(data){
+  
+  if(data != "NaN"){
+    fig <- ggplot(data, aes(x = epi_week, y=Profiles,fill = count)) + 
+      scale_fill_gradient(low="#D5DBDB", high="red") + geom_tile() + theme_bw()
+    return(ggplotly(fig))
+  }else{
+  mt <- matrix(0, 10, 10)
+  mt <- as.data.frame(mt)
+  return(plot_ly(x = colnames(mt), y = rownames(mt), z = mt , type = "heatmap"))
+  }
 }
 
 #### ui shiny ####
@@ -174,9 +187,12 @@ server <- function(input, output){
   mutatation_change <- reactive({
     req(input$Gene)
     req(input$Lineages)
-    heatplot  <- split_lineages(meta(), input$Lineages, input$Gene, input$pfrecuency )
-    
-    return(list(mutations_list = heatplot$mutations,  heatmap_mutations = heatplot$heatmap, mutations_table = heatplot$table))
+    mutations_perfil  <- split_lineages(meta(), input$Lineages, input$Gene, input$pfrecuency )
+    if(mutations_perfil$table == "NaN"){
+      mt = matrix(0, 10, 10)
+      mutations_perfil$table = mt
+    }
+    return(list(mutations_list = mutations_perfil$mutations,  heatmap_mutations = mutations_perfil$heatmap, mutations_table = mutations_perfil$table))
     
   })
   
@@ -230,11 +246,12 @@ server <- function(input, output){
     fig
   })
   
-  output$perfil_mutations <- renderPlotly({ 
-    fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles,fill = count)) + 
+  
+  output$perfil_mutations <- renderPlotly({
+    #heatmap_mutations_plot(mutatation_change()$heatmap_mutations)
+    fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles,fill = count)) +
       scale_fill_gradient(low="#D5DBDB", high="red") + geom_tile() + theme_bw()
     ggplotly(fig)
-    
   })
   
   output$metadataTest <- renderTable({

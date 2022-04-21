@@ -96,11 +96,12 @@ matrix_distribution <- function(metadata, mindate, maxdate, frecuency, transp){
 }
 
 variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switch = "VocVoi"){
+  
   cities <- as.data.frame(st_coordinates(st_centroid(map)))
   map$Location <- toupper(map$Location)
   cities$location <- map$Location
-  metadata$location <- toupper(metadata$location)
   metadata <- metadata %>% filter(date >= mindate , date <= maxdate)
+  metadata$location <- toupper(metadata$location)
   
   if( switch == "VocVoi" ){
     for( var in unique(metadata$VOC.VOI)){
@@ -117,12 +118,18 @@ variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switc
   total <- metadata %>% group_by(location) %>% summarise(total = n())
   cities <- merge(x  = cities, y = total, by = 'location', all = TRUE )
   
-  conteo <- epidem %>% filter(Date >= mindate, Date <= maxdate)
-  conteo <- conteo %>% group_by(Location) %>% summarise( N = n())
-  conteo$Location <- toupper(conteo$Location)
+  if(!is.null(epidem)){
+    epidem_freq <- epidem %>% filter(Date >= mindate, Date <= maxdate)
+    epidem_freq <- epidem_freq %>% group_by(Location) %>% summarise( N = n())
+    epidem_freq$location <- toupper(epidem_freq$Location)
+    Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
+    Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
+  }else{
+    freq_sampling <- metadata %>% group_by(location) %>% summarise(total = n())
+    colnames(freq_sampling) <- c("Location","N")
+    Merge_data <- inner_join(map,freq_sampling, by = 'Location' )
+  }
   
-  Merge_data <- inner_join(map,conteo, by = 'Location' )
-  Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
   pal <- colorNumeric(  palette = "Greys", NULL)
   long <- cities$X
   lat <- cities$Y
@@ -147,6 +154,7 @@ sampling_distribution <- function(map , metadata, mindate, maxdate, sampling, sc
   } else{
     count_region <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
   }
+  
   count_region$location <- toupper(count_region$location)
   colnames(count_region) <- c("Location", "N")
   Merge_data <- merge(map, count_region , by  = "Location")
@@ -158,7 +166,7 @@ mutations <- function(data, gene, freq = 50,lineage="BA.1"){
   data <- data[data$lineage == lineage,] 
   data <- data 
   data <- as.data.frame(data)
-
+  
   elements <- unlist(strsplit(data$Substitutions, ","))
   a <- sort(unique(elements))
   b <- grep(gene, a, value = TRUE)
@@ -193,6 +201,9 @@ split_lineages <- function(tabla,lineage1,gene,val){
   profiles <- uniq(interest_mutation,val,gene)
   tbl_resume <- do_table(profiles,gene)
   
+  if (sum(is.na(tbl_resume)) == 0 & dim(tbl_resume)[1] >= 1){
+    
+  
   result_table <- tbl_total(tbl_resume,profiles,gene)
   newdata <- interest_mutation[ (interest_mutation$gen_select %in% profiles$gen_select), ]
   heatmap_mutations <- newdata %>% count(newdata$gen_select,newdata$Date) 
@@ -209,29 +220,40 @@ split_lineages <- function(tabla,lineage1,gene,val){
   heatmap_mutations$gene = str_replace_all(heatmap_mutations$gene,gene,"")
   
   return(list(mutations = tbl_resume, table = result_table, heatmap = heatmap_mutations))
+  
+  }else{
+    return(list(mutations = "NaN", table = "NaN", heatmap = "NaN"))
+  }
 }
 
-all_mutations <- function(mutations,gene) {
-  gen_muts <- c()
+all_mutations <- function(mutations,gene) {  #Function 1
   
+  gen_muts <- c()
   for (i in 1:nrow(mutations)){
     static <- c()
     nums <- c()
     list_mutations <-strsplit(mutations$Substitutions[i], ",")
     for (p in list_mutations[[1]]){
       if(grepl(gene,p) == TRUE){
-        num <- stringr::str_extract(p, "\\d+")
+        p2 = str_replace_all(p,gene,"")
+        num <- stringr::str_extract(p2, "\\d+") 
         nums <- append(nums,as.numeric(num))
         static <- append(static,p)
-      } 
+      }
     }
-    
     my_data <- data.frame(static, nums)
-    my_data <- my_data[order(my_data$nums),]
-    collapse <- paste(my_data$static, collapse = ",")
-    gen_muts <- append(gen_muts,collapse)
+    if (length(my_data) > 0) {
+      my_data <- my_data[order(my_data$nums),]
+      collapse <- paste(my_data$static, collapse = ",")
+      gen_muts <- append(gen_muts,collapse)
+    } 
+    else {
+      gen_muts <- append(gen_muts,"NA")
+    } 
+    
     static <- c()
     nums <- c()
+    
   }
   
   mutations$gen_select <- gen_muts
