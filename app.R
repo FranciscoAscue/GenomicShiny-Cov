@@ -59,19 +59,6 @@ leaflet_plot <- function(data, palette, titleLegend, scale=FALSE, long = FALSE, 
 }
 
 
-heatmap_mutations_plot <- function(data){
-  
-  if(data != "NaN"){
-    fig <- ggplot(data, aes(x = epi_week, y=Profiles,fill = count)) + 
-      scale_fill_gradient(low="#D5DBDB", high="red") + geom_tile() + theme_bw()
-    return(ggplotly(fig))
-  }else{
-  mt <- matrix(0, 10, 10)
-  mt <- as.data.frame(mt)
-  return(plot_ly(x = colnames(mt), y = rownames(mt), z = mt , type = "heatmap"))
-  }
-}
-
 #### ui shiny ####
 ui <- bootstrapPage( navbarPage(theme = shinytheme("flatly"), "GenomicShiny-Cov", id="nav", 
                                 UploadData, MapStatistics, AnalysisLineages) )
@@ -246,12 +233,52 @@ server <- function(input, output){
     fig
   })
   
+  shiny::observeEvent(input$final_edit, {
+    
+    tryCatch({
+      shiny::req(!is.null(input$current_id) &
+                   stringr::str_detect(input$current_id,pattern = "edit"))
+      edit_row <- which(stringr::str_detect(inputData()$EDITAR, pattern = paste0("\\b", input$current_id, "\\b") ))
+      
+      sql_id <- inputData()[edit_row, ][["NETLAB"]]
+      user <- credentials()$info[["user"]]
+      password <- paste0(user,"123")
+      update_sql(usr = user, pass = password, sql_id, fecha_tm = input$fecha_tm, procedencia =input$procedencia , provincia =input$provincia ,
+                 distrito =input$distrito ,nombre = toupper(input$apellido_nombre) ,dni =input$dni , edad =input$edad ,sexo =input$sexo ,
+                 vac =input$vacunado ,marca1 =input$marca1 ,Pra =input$PDosis , Sda =input$SDosis ,
+                 marca2 =input$marca2 ,Tra =input$TDosis , Hp =input$hospitalizacion , Dead =input$fallecido)
+      
+    },
+    
+    error = function(e){
+      showModal(
+        modalDialog(
+          title = "DNI DUPLICADO!",
+          tags$i("Revise si el paciente fue ingresado previamente"),br(),br(),
+          tags$code(e$message)
+        )
+      )
+    })
+    
+  })
   
   output$perfil_mutations <- renderPlotly({
     #heatmap_mutations_plot(mutatation_change()$heatmap_mutations)
-    fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles,fill = count)) +
-      scale_fill_gradient(low="#D5DBDB", high="red") + geom_tile() + theme_bw()
-    ggplotly(fig)
+    tryCatch({
+      fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles,fill = count)) +
+        scale_fill_gradient(low="#D5DBDB", high="red") + geom_tile() + theme_bw()
+      ggplotly(fig)
+    },
+    
+    error = function(e){
+      mt = matrix(0, 10, 10)
+      mt = as.data.frame(mt)
+      plot_ly(x = colnames(mt), y = rownames(mt), z = mt, type = "heatmap")
+    })
+    
+    # fig <- ggplot(mutatation_change()$heatmap_mutations, aes(x = epi_week, y=Profiles,fill = count)) +
+    #   scale_fill_gradient(low="#D5DBDB", high="red") + geom_tile() + theme_bw()
+    # ggplotly(fig)
   })
   
   output$metadataTest <- renderTable({
