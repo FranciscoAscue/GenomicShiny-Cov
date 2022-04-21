@@ -117,7 +117,7 @@ variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switc
   
   total <- metadata %>% group_by(location) %>% summarise(total = n())
   cities <- merge(x  = cities, y = total, by = 'location', all = TRUE )
-  for(i in 1:length(cities$total)){if(cities$total[i] == "0"){cities$total[i] = 1}}
+  #for(i in 1:length(cities$total)){if(cities$total[i] == 0){cities$total[i] = 1}}
   
   if(!is.null(epidem)){
     epidem_freq <- epidem %>% filter(Date >= mindate, Date <= maxdate)

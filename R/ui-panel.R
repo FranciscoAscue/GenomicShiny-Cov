@@ -64,8 +64,8 @@ MapStatistics <- tabPanel(
                 column(4,
                 column(12, dateRangeInput("Daterange", 
                                          "Select date range", 
-                                         start  = "2020-03-01",
-                                         end    = "2022-01-25")      
+                                         start  = "2020-03",
+                                         end    = "2022-05", format = "yyyy-mm")      
                 ),
                 column(12,uiOutput("selectVariants")),
                 column(12,radioButtons("Escala", "Select scale",
