@@ -128,8 +128,8 @@ AnalysisLineages <- tabPanel(
          column(12, numericInput("mfrecuency", label = "Minimun frecuency", min = 1, 
                                 max = 30, value = 1 ))
   ),
-    column(5, shinycssloaders::withSpinner(DT::dataTableOutput("mutation_tabla"), 
-                                           type = 3, color.background = "white", color = "green"))
+  column(5, shinycssloaders::withSpinner(plotlyOutput("mutation"), 
+                                         type = 3, color.background = "white", color = "green"))
   ),
   
   column(12,
@@ -149,8 +149,8 @@ AnalysisLineages <- tabPanel(
                                  "NS7a_","NS7b_","NS8_","NS9a_","NS9b_","NS10_"),
                      selected = "")
   ),
-  column(5, shinycssloaders::withSpinner(plotlyOutput("mutation"), 
-                                         type = 3, color.background = "white", color = "green"))
+    column(5, shinycssloaders::withSpinner(DT::dataTableOutput("mutation_tabla"), 
+                                           type = 3, color.background = "white", color = "green"))
   )
 )
 
