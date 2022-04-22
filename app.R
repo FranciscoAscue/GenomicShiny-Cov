@@ -254,7 +254,7 @@ server <- function(input, output){
     MetadataTest()
   }, sanitize.text.function = function(x) x)
 
-  output$tabla <- DT::renderDataTable(meta(), 
+  output$tabla <- DT::renderDataTable(head(meta()), 
               options = list(scrollX = TRUE),rownames = FALSE)
   
   output$mutation_tabla <- DT::renderDataTable(mutatation_change()$mutations_table, 
