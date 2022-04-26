@@ -194,31 +194,33 @@ mutations <- function(data, gene, freq = 50,lineage="BA.1"){
   return(m) 
 }
 
-split_lineages <- function(tabla,lineage1,gene,val){
+split_lineages <- function(tabla,lineage1,gene,val, ncores = 4){
   
   selection <- filter(tabla, lineage == lineage1)
   selection <- selection[,c("location","Substitutions","Date")]
   
-  interest_mutation <- all_mutations(selection,gene) 
+  add_col <- selection$Substitutions
+  add_col_new <- mclapply(add_col, all_mutations, gene, mc.cores = 4) # search all mutations in spike protein. These function can be search any gen
+  new_col <- unlist(add_col_new)
+  selection$gen_select <- new_col
+  interest_mutation <- selection
   profiles <- uniq(interest_mutation,val,gene)
-  tbl_resume <- do_table(profiles,gene)
+
+  if (sum(is.na(profiles)) == 0 & dim(profiles)[1] >= 1){
+    tbl_resume <- do_table(profiles,gene)
+    result_table <- tbl_total(tbl_resume,profiles,gene)
+    newdata <- interest_mutation[ (interest_mutation$gen_select %in% profiles$gen_select), ]
+    heatmap_mutations <- newdata %>% count(newdata$gen_select,newdata$Date) 
   
-  if (sum(is.na(tbl_resume)) == 0 & dim(tbl_resume)[1] >= 1){
-    
+    names(heatmap_mutations) <- c("gene","epi_week","count") 
+    haplotype <- c()
   
-  result_table <- tbl_total(tbl_resume,profiles,gene)
-  newdata <- interest_mutation[ (interest_mutation$gen_select %in% profiles$gen_select), ]
-  heatmap_mutations <- newdata %>% count(newdata$gen_select,newdata$Date) 
+    for (z in heatmap_mutations$gene){
+      haplo <- profiles[profiles$gen_select==z,]
+     haplotype <- append(haplotype,haplo$hap)
+     }
   
-  names(heatmap_mutations) <- c("gene","epi_week","count") 
-  haplotype <- c()
-  
-  for (z in heatmap_mutations$gene){
-    haplo <- profiles[profiles$gen_select==z,]
-    haplotype <- append(haplotype,haplo$hap)
-  }
-  
-  heatmap_mutations$Profiles <- haplotype
+    heatmap_mutations$Profiles <- haplotype
   heatmap_mutations$gene = str_replace_all(heatmap_mutations$gene,gene,"")
   
   return(list(mutations = tbl_resume, table = result_table, heatmap = heatmap_mutations))
@@ -228,46 +230,57 @@ split_lineages <- function(tabla,lineage1,gene,val){
   }
 }
 
-all_mutations <- function(mutations,gene) {  #Function 1
+all_mutations <- function(elements,gene) {  #Function 1
+  static <- c()
+  nums <- c()
   
-  gen_muts <- c()
-  for (i in 1:nrow(mutations)){
-    static <- c()
-    nums <- c()
-    list_mutations <-strsplit(mutations$Substitutions[i], ",")
-    for (p in list_mutations[[1]]){
-      if(grepl(gene,p) == TRUE){
-        p2 = str_replace_all(p,gene,"")
-        num <- stringr::str_extract(p2, "\\d+") 
-        nums <- append(nums,as.numeric(num))
-        static <- append(static,p)
-      }
+  list_mutations <-strsplit(elements, ",")
+  for (p in list_mutations[[1]]){
+    if(grepl(gene,p) == TRUE){
+      p2 = str_replace_all(p,gene,"")
+      num <- stringr::str_extract(p2, "\\d+")
+      nums <- append(nums,as.numeric(num))
+      static <- append(static,p)
     }
-    my_data <- data.frame(static, nums)
-    if (length(my_data) > 0) {
-      my_data <- my_data[order(my_data$nums),]
-      collapse <- paste(my_data$static, collapse = ",")
-      gen_muts <- append(gen_muts,collapse)
-    } 
-    else {
-      gen_muts <- append(gen_muts,"NA")
-    } 
-    
-    static <- c()
-    nums <- c()
-    
   }
   
-  mutations$gen_select <- gen_muts
-  return(mutations)
+  my_data <- data.frame(static, nums)
+  
+  if (length(my_data) > 0) {
+    my_data <- my_data[order(my_data$nums),]
+    collapse <- paste(my_data$static, collapse = ",")
+    
+    static <- c()
+    nums <- c()
+    
+    return(collapse)
+    
+  } 
+  else {
+    
+    static <- c()
+    nums <- c()
+    
+    return(NA)
+  } 
+  
 }
 
 uniq <- function(interest_mutation,val,gene){
+  interest_mutation <- interest_mutation %>% drop_na()
+  figure <- interest_mutation %>% group_by(gen_select) %>% summarize(count=n()) %>%  filter(count > val)
   
-  figure <- interest_mutation %>% group_by(gen_select) %>% summarize(count=n()) %>% filter(count > val)
-  figure$hap <- sprintf("%03d", 1:nrow(figure))
+  if (dim(figure)[1] == 0) { 
+    
+    return(figure)
+    
+  } else {
+    
+    figure$hap <- sprintf("%03d", 1:nrow(figure))
+    figure[complete.cases(figure),]
+    return(figure)
+  }
   
-  return(figure)
 }
 
 do_table <- function(profiles,gene){
@@ -298,6 +311,8 @@ do_table <- function(profiles,gene){
   reference <- gsub("ins","-", reference, fixed = TRUE)
   table_1 <- data.frame(reference, change, position)
   table_1 <- table_1[order(table_1$position),]
+  na.omit(table_1)
+  
   return(table_1)
   
 }
