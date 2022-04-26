@@ -194,13 +194,13 @@ mutations <- function(data, gene, freq = 50,lineage="BA.1"){
   return(m) 
 }
 
-split_lineages <- function(tabla,lineage1,gene,val, ncores = 4){
+split_lineages <- function(tabla,lineage1,gene,val, ncores = 10){
   
   selection <- filter(tabla, lineage == lineage1)
   selection <- selection[,c("location","Substitutions","Date")]
   
   add_col <- selection$Substitutions
-  add_col_new <- mclapply(add_col, all_mutations, gene, mc.cores = 4) # search all mutations in spike protein. These function can be search any gen
+  add_col_new <- mclapply(add_col, all_mutations, gene, mc.cores = 10) # search all mutations in spike protein. These function can be search any gen
   new_col <- unlist(add_col_new)
   selection$gen_select <- new_col
   interest_mutation <- selection
