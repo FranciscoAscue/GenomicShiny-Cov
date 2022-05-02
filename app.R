@@ -78,7 +78,7 @@ server <- function(input, output){
       return(map)
     }
     map <- geojsonsf::geojson_sf(geojson = url)
-    
+    map$Location <- toupper(map$Location)
     return(map)
   })
   
@@ -117,7 +117,7 @@ server <- function(input, output){
     }
     
     emetadata <- read.csv(input$emetadata$datapath, sep = input$Episeparator)
-    emetadata$Date <- as.Date(as.character(emetadata$Date),  format = input$DateFormat)
+    emetadata$date <- as.Date(as.character(emetadata$date),  format = input$DateFormat)
     
     return(emetadata)
   })
@@ -127,7 +127,7 @@ server <- function(input, output){
   var_datamap <- reactive({
 
     datamap <- variant_distribution(map = geojson(), epidem = epidem_data(), 
-                                    metadata = meta(), input$Daterange[1], input$Daterange[2],input$switch)
+                                    metadata = meta(), input$Daterange[1], input$Daterange[2],input$switch, input$EpidemInput)
     
     return( list( df = datamap$df, pal = datamap$pal, long = datamap$long, lat = datamap$lat, 
                   var = datamap$var, total = datamap$total))
@@ -144,7 +144,7 @@ server <- function(input, output){
   
   lineage_var_data <- reactive({
     metadata <- as.data.frame(meta())
-    metadata <- stackvariant(metadata, input$lineageDate[1], input$lineageDate[2], 
+    metadata <- stackvariant(metadata,  input$lineageDate[1], input$lineageDate[2], 
                              input$ngenomes, input$Varline)
     
   })

@@ -39,6 +39,10 @@ UploadData <- tabPanel("Upload Data",
                                                     choices = list("Tab" = "\t", "Comma" = ",", "semicolon" = ";"), 
                                                     selected = "\t", inline = TRUE)),
                               
+                              column(8,radioButtons("EpidemInput", "Select epidemiological file",
+                                                    choices = list("Cumulative cases per Day" = "CC", "Cases per Day" = "CD"), 
+                                                    selected = "CD", inline = TRUE)),
+                              
                               fileInput(inputId = "emetadata", h4("Upload Epidemiological CSV File"), 
                                         accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv','.tsv')),
                               

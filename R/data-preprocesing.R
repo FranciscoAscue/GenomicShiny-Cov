@@ -95,7 +95,7 @@ matrix_distribution <- function(metadata, mindate, maxdate, frecuency, transp){
   return(cuadro_motivo)
 }
 
-variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switch = "VocVoi"){
+variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switch = "VocVoi", input = "Cases per Day"){
   
   cities <- as.data.frame(st_coordinates(st_centroid(map)))
   map$Location <- toupper(map$Location)
@@ -120,16 +120,21 @@ variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switc
   cities[is.na(cities)] <- 0
   for(i in 1:length(cities$total)){if(cities$total[i] == 0){cities$total[i] = 1}}
   
-  if(!is.null(epidem)){
-    epidem_freq <- epidem %>% filter(Date >= mindate, Date <= maxdate)
+  if(input == "CD"){
+    epidem_freq <- epidem %>% filter(date >= mindate, date <= maxdate)
     epidem_freq <- epidem_freq %>% group_by(Location) %>% summarise( N = n())
-    epidem_freq$location <- toupper(epidem_freq$Location)
+    epidem_freq$Location <- toupper(epidem_freq$Location)
     Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
     Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
   }else{
-    freq_sampling <- metadata %>% group_by(location) %>% summarise(total = n())
-    colnames(freq_sampling) <- c("Location","N")
-    Merge_data <- inner_join(map,freq_sampling, by = 'Location' )
+    epidem_maxdate <- data %>% filter(date == maxdate)
+    epidem_mindate <- data %>% filter(date == mindate)
+    merged_epidem <- merge(filtrado, filtrado2, by = "location", all = TRUE)
+    merged_epidem[is.na(merged_epidem)] <- 0
+    merged_epidem$N <- merged_epidem$deaths.x - merged_epidem$deaths.y
+    merged_epidem$Location <- toupper(merged_epidem$state)
+    Merge_data <- inner_join(map,merged_epidem, by = 'location' )
+    Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
   }
   
   pal <- colorNumeric(  palette = "Greys", NULL)
@@ -194,13 +199,13 @@ mutations <- function(data, gene, freq = 50,lineage="BA.1"){
   return(m) 
 }
 
-split_lineages <- function(tabla,lineage1,gene,val, ncores = 10){
+split_lineages <- function(tabla,lineage1,gene,val, ncores = 1){
   
   selection <- filter(tabla, lineage == lineage1)
   selection <- selection[,c("location","Substitutions","Date")]
   
   add_col <- selection$Substitutions
-  add_col_new <- mclapply(add_col, all_mutations, gene, mc.cores = 10) # search all mutations in spike protein. These function can be search any gen
+  add_col_new <- mclapply(add_col, all_mutations, gene, mc.cores = 1) # search all mutations in spike protein. These function can be search any gen
   new_col <- unlist(add_col_new)
   selection$gen_select <- new_col
   interest_mutation <- selection
