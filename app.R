@@ -37,6 +37,7 @@ hist_plot <- function(data, lineage = "AY.102", ndf = 5){
     return(plot)
   }
   
+  
 }
 
 leaflet_plot <- function(data, palette, titleLegend, scale=FALSE, long = FALSE, lat = FALSE, 
