@@ -71,10 +71,8 @@ server <- function(input, output){
   geojson <- reactive({
     
     url <- input$geojsonurl
-    
     if(!is.null(input$geojson)){
       map <- geojsonsf::geojson_sf(geojson = input$geojson$datapath)
-      
       return(map)
     }
     map <- geojsonsf::geojson_sf(geojson = url)
@@ -82,11 +80,16 @@ server <- function(input, output){
     return(map)
   })
   
+  geodownload <- reactive({
+    search <- gsub(" /", "", input$pais, fixed = TRUE)
+    org <- getData("GADM", country=search, level=1)
+    org
+  })
+  
   # metadata upload (GISAID metadata / custom metadata) 
   meta <- reactive({
     req(input$metadata)
     if(is.null(input$metadata)){
-      
       return(NULL)
     }
     
@@ -251,7 +254,9 @@ server <- function(input, output){
   })
   
   output$metadataTest <- renderTable({
-    MetadataTest()
+    isolate({
+      MetadataTest()
+    })
   }, sanitize.text.function = function(x) x)
 
   output$tabla <- DT::renderDataTable(head(meta()), 
@@ -259,6 +264,19 @@ server <- function(input, output){
   
   output$mutation_tabla <- DT::renderDataTable(mutatation_change()$mutations_table, 
                options = list(scrollX = TRUE), rownames = FALSE)
+  
+  
+  output$downloadjson <- downloadHandler(
+    filename = function() {
+      paste("map.geojson")
+    },
+    content = function(file) {
+      writeOGR(geodownload(), file, layer = "org", driver="GeoJSON")
+    }
+  )
+  
+  
+  
   
   
   #### renderUI panels and selectInput ####

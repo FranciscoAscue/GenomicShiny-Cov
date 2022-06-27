@@ -23,9 +23,9 @@ missingPackages <- function(pkg){
     }
 }
 
-dependencies <- c("shiny","shinycssloaders","shinythemes","plotly","fossil", "remotes","dplyr",
+dependencies <- c("shiny","raster","shinycssloaders","shinythemes","plotly","fossil", "remotes","dplyr",
                   "rgdal","sp","sf","geojsonsf","DT","htmlwidgets", "leaflet","leaflet.minicharts",
-                  "viridisLite","viridis", "RColorBrewer","stringr","tidyverse","ggplot2","splitstackshape")
+                  "viridisLite","viridis", "RColorBrewer","stringr","tidyverse","ggplot2","splitstackshape","geojsonio")
 
 # Package R dependencies
 

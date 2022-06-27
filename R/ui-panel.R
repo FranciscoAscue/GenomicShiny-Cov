@@ -13,7 +13,7 @@ UploadData <- tabPanel("Upload Data",
                                             width="60px",height="60px")
                               )),
                               textInput(inputId = "geojsonurl", label = h4("Url to Geojson (Optional)"),value = NULL),
-                              
+                              downloadButton("downloadjson", "Download", label = "Download GeoJson"),
                               fileInput(inputId = "geojson", h4("Upload Geojson File"), accept=c('.geojson','.geocsv')),
                               
                               column(3,radioButtons("selectInput", "Select input",

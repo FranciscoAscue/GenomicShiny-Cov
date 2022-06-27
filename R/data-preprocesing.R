@@ -46,7 +46,10 @@ metadata_preprosesing  <- function(metadata, region, country, geoLocation){
 
 stackvariant <- function(data, mindate, maxdate, ngenomes, varline){
   
+  data <- data %>% dplyr::filter(date >= mindate, date <= maxdate)
+  
   if( varline == "Lineages"){
+    
     data <- data %>% group_by(Date, epi_week,  lineage) %>% summarise( n = n()) %>%
       mutate(Frecuency = n / sum(n))
     
