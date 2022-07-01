@@ -259,7 +259,7 @@ server <- function(input, output){
     })
   }, sanitize.text.function = function(x) x)
 
-  output$tabla <- DT::renderDataTable(head(meta()), 
+  output$tabla <- DT::renderDataTable( head(meta() ), 
               options = list(scrollX = TRUE),rownames = FALSE)
   
   output$mutation_tabla <- DT::renderDataTable(mutatation_change()$mutations_table, 
@@ -303,7 +303,7 @@ server <- function(input, output){
     selectInput(inputId = "pais", 
                 label = "Select a Country", 
                 choices = Lista,
-                selected = "Total")
+                selected = "Peru /")
   })
   
   output$selectVariants <- renderUI({
