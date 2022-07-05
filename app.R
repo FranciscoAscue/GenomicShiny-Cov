@@ -42,8 +42,9 @@ hist_plot <- function(data, lineage = "AY.102", ndf = 5){
 leaflet_plot <- function(data, palette, titleLegend, scale=FALSE, long = FALSE, lat = FALSE, 
                          var = FALSE, total = FALSE){
   basemap <- leaflet(data) %>% 
-    addProviderTiles(providers$CartoDB.Positron) %>%
-    addPolygons(stroke = FALSE, smoothFactor = 0.4, fillOpacity = 1, fillColor = ~palette(N),
+    addTiles() %>%
+    ##addProviderTiles(providers$CartoDB.Positron) %>%
+    addPolygons(stroke = FALSE, smoothFactor = 0.5, fillOpacity = 1, fillColor = ~palette(N),
                 label = ~paste0(Location, ": ", formatC(N, big.mark = ","))) %>%
     addLegend(pal = palette, values = ~N, title = titleLegend, opacity = 1.0) 
   

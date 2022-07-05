@@ -67,14 +67,15 @@ stackvariant <- function(data, mindate, maxdate, ngenomes, varline){
 
 freq_voc_voi <- function(data, lin){
   
-  if(is.element(lin, unique(data$lineage))){
-    
-    data <- data %>% filter(lineage == lin)
+    dd1 = strsplit(lin, split = ",")
+    data <- data %>% filter(lineage == dd1[[1]])
     data <- data %>% group_by(Date, epi_week) %>% summarise(Frecuency = n())
     return(data)
-  } else{
-    return(data.frame(Date = NULL,  epi_week = NULL,  Frecuency = NULL))
-  }
+  # if(!is.element(lin, unique(data$lineage))){
+  #   return(data)
+  # } else{
+  #   return(data.frame(Date = NULL,  epi_week = NULL,  Frecuency = NULL))
+  # }
   
 }
 
@@ -150,7 +151,9 @@ variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switc
 
 sampling_distribution <- function(map , metadata, mindate, maxdate, sampling, scale_map){
   
+  map$Location <- toupper(map$Location)
   metadata <- metadata %>% filter( date >= mindate, date <= maxdate )
+  metadata$location <- toupper(metadata$location)
   if(sampling == "Total"){
     metadata <- metadata
     pal <- colorNumeric(  palette = "Reds", NULL)
@@ -165,9 +168,12 @@ sampling_distribution <- function(map , metadata, mindate, maxdate, sampling, sc
     count_region <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
   }
   
-  count_region$location <- toupper(count_region$location)
+  count_region[is.na(count_region)] <- 0
+  # count_region$location <- toupper(count_region$location)
   colnames(count_region) <- c("Location", "N")
-  Merge_data <- merge(map, count_region , by  = "Location")
+  Merge_data <- inner_join(map, count_region , by  = "Location")
+  #Merge_data[is.na(Merge_data)] <- 0
+  #Merge_data <- sf::st_as_sf(Merge_data)
   return(list(df = Merge_data, pal = pal))
 }
 

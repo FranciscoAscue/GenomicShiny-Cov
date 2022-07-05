@@ -24,11 +24,11 @@ UploadData <- tabPanel("Upload Data",
                               
                               column(3,radioButtons("separator", "Select separator",
                                                     choices = list("Tab" = "\t", "Comma" = ","), selected = "\t")),
-                              
-                              column(12, h3("")),
+                              h3(" "),
+                                column(12, 
                               uiOutput("selectLocation"),
                               uiOutput("selectCountry"),
-                              
+                              ),
                               fileInput(inputId = "metadata", h4("Upload metadata file (.csv/.tsv)"), 
                                         accept=c('text/csv','text/comma-separated-values,text/plain', '.csv','.tsv')),
                               
