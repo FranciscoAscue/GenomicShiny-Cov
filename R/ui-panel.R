@@ -3,7 +3,9 @@
 
 
 UploadData <- tabPanel("Upload Data",
-                       column(3, 
+                       column(3,
+                              
+                              
                               h3(p(style="color:black;text-align:left", 
                                    tags$img(src="https://upload.wikimedia.org/wikipedia/commons/3/34/GISAID_logo.png",
                                             width="120px",height="60px"),
@@ -13,11 +15,11 @@ UploadData <- tabPanel("Upload Data",
                                             width="60px",height="60px")
                               )),
                               textInput(inputId = "geojsonurl", label = h4("Url to Geojson (Optional)"),value = NULL),
-                              downloadButton("downloadjson", "Download", label = "Download GeoJson"),
+                              
                               fileInput(inputId = "geojson", h4("Upload Geojson File"), accept=c('.geojson','.geocsv')),
                               
                               column(3,radioButtons("selectInput", "Select input",
-                                                    choices = list("GISAID" = "GISAID", "Custom Metadata" = "Custom"), 
+                                                    choices = list("Gisaid Pacient status" = "GISAID", "Gisaid augur input" = "augur"), 
                                                     selected = "GISAID")),
                               
                               column(3,radioButtons("separator", "Select separator",
@@ -46,7 +48,9 @@ UploadData <- tabPanel("Upload Data",
                               fileInput(inputId = "emetadata", h4("Upload Epidemiological CSV File"), 
                                         accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv','.tsv')),
                               
-                              actionButton(inputId = "RunTest", label = h4(icon(name = "file-import"), "Run test"), width = "200px")
+                              actionButton(inputId = "RunTest", label = h4(icon(name = "file-import"), "Run test"), width = "200px"),
+                              
+                              downloadButton("downloadjson", "Download", label = "Download GeoJson"),
                        ),
                        
                        column(8, aling="center",

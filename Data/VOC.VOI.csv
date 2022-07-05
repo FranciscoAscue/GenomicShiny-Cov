@@ -17,6 +17,8 @@ VOC.VOI,Lineages
 "Delta","AY.*"
 "Lambda","C.37.*"
 "Omicron","BA.*"
+"Omicron","BE.*"
+"Omicron","BG.*"
 "NO VOC-VOI","BB.*"
 "NO VOC-VOI","A.1.*"
 "NO VOC-VOI","A.2.*"

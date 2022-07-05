@@ -105,6 +105,8 @@ server <- function(input, output){
       metadata <- add_epi_week(metadata, "date", system = "cdc")
       
       metadata$Date <- epi_week_date(metadata$epi_week, metadata$epi_year,system = "cdc")
+      names(metadata)[names(metadata) == 'pangolin_lineage'] <- 'lineage'
+      metadata <- Added_VocVoi(metadata)
     }
     
     return(metadata)
