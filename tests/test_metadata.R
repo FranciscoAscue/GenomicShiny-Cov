@@ -1,4 +1,4 @@
-metadata_test <- function(metadata, geojson, epidemio){
+metadata_test <- function(metadata, geojson, epidemio = NA){
   test_table <- read.csv("tests/metadata-test.csv", header = TRUE)
   cnt = 1
   for(i in c("location","lineage","date","VOC.VOI","Substitutions", "Population") ){

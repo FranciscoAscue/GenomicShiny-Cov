@@ -50,6 +50,8 @@ UploadData <- tabPanel("Upload Data",
                               
                               actionButton(inputId = "RunTest", label = h4(icon(name = "file-import"), "Run test"), width = "200px"),
                               
+                              h3(" "),
+                              
                               downloadButton("downloadjson", "Download", label = "Download GeoJson"),
                        ),
                        
