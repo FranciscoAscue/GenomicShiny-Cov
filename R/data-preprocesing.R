@@ -272,9 +272,9 @@ all_mutations <- function(elements,gene) {  #Function 1
   } 
   else {
     
-    static <- c()
-    nums <- c()
-    
+    # static <- c()
+    # nums <- c()
+    # 
     return(NA)
   } 
   
