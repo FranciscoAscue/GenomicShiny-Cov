@@ -17,7 +17,3 @@ The epidemiological of positive cases have two principal headers label: Date of 
 
 ### Vectorial map in GeoJson format   
 The vectorial map can be upload from URL and directly in geojson format  
-
-### Support or Contact
-
-Having trouble with GenomicShiny-Cov? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) 
