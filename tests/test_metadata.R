@@ -55,8 +55,8 @@ metadata_test <- function(metadata, geojson, epidemio = NA){
     test_table$STATUS[10] <- as.character(icon("exclamation","fa-solid"))
   }
   
-  if((max(epidemio$Date) > max(metadata$date)) 
-     & (min(epidemio$Date) < min(metadata$date)) ){
+  if((max(epidemio$date) > max(metadata$date)) 
+     & (min(epidemio$date) < min(metadata$date)) ){
     test_table$RESULT[11] <- TRUE
     test_table$STATUS[11] <- as.character(icon("check","fa-solid"))
   }else{
