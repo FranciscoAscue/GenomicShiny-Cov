@@ -132,12 +132,14 @@ variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switc
     Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
   }else{
     
-    epidem <- epidem %>% filter(date >= mindate , date <= maxdate )
-    merged_epidem <- merge(filtrado, filtrado2, by = "location", all = TRUE)
-    merged_epidem[is.na(merged_epidem)] <- 0
-    merged_epidem$N <- merged_epidem$deaths.x - merged_epidem$deaths.y
-    merged_epidem$Location <- toupper(merged_epidem$state)
-    Merge_data <- inner_join(map,merged_epidem, by = 'location' )
+    max <- epidem %>% filter(date == maxdate )
+    min <- epidem %>% filter(date == mindate )
+    
+    epidem = merge(max, min, by = "Location")
+    epidem$N = epidem$deaths.x - epidem$deaths.y
+    epidem[is.na(epidem)] <- 0
+    epidem$Location <- toupper(epidem$Location)
+    Merge_data <- inner_join(map,epidem, by = 'Location' )
     Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
   }
   
