@@ -134,7 +134,6 @@ variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switc
     
     max <- epidem %>% filter(date == maxdate )
     min <- epidem %>% filter(date == mindate )
-    
     epidem = merge(max, min, by = "Location")
     epidem$N = epidem$deaths.x - epidem$deaths.y
     epidem[is.na(epidem)] <- 0
