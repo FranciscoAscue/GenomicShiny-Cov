@@ -135,14 +135,14 @@ variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switc
     max <- epidem %>% filter(date == maxdate )
     min <- epidem %>% filter(date == mindate )
     epidem_freq = merge(max, min, by = "Location")
-    epidem_freq$N = epidem_freq$deaths.x - epidem_freq$deaths.y
+    epidem_freq$N = abs(epidem_freq$deaths.x - epidem_freq$deaths.y)
     epidem_freq[is.na(epidem_freq)] <- 0
-    epidem_freq$Location <- toupper(epidem_freq$Location)
+    #epidem_freq$Location <- toupper(epidem_freq$Location)
     Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
     Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
   }
   
-  pal <- colorNumeric(  palette = "Greys", NULL)
+  pal <- colorNumeric(palette = "Greys", NULL)
   long <- cities$X
   lat <- cities$Y
   var <- cities[,4:(length(cities)-1)]
