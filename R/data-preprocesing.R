@@ -215,7 +215,7 @@ split_lineages <- function(tabla,lineage1,gene,val){
   selection <- selection[,c("location","Substitutions","Date")]
   
   add_col <- selection$Substitutions
-  add_col_new <- sapply(add_col, all_mutations, gene) # search all mutations in spike protein. These function can be search any gen
+  add_col_new <- mclapply(add_col, all_mutations, gene) # search all mutations in spike protein. These function can be search any gen
   new_col <- unlist(add_col_new)
   selection$gen_select <- new_col
   interest_mutation <- selection
