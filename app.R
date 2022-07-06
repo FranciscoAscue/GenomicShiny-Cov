@@ -98,16 +98,19 @@ server <- function(input, output){
       req(input$pais)
       metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
       metadata <- metadata_preprosesing(metadata, input$Location, input$pais, geojson())
-      colnames(metadata) <- col$NEW
-      
+      colnames(metadata)[colnames(metadata) == 'Collection.date'] = 'date'
+      colnames(metadata)[colnames(metadata) == 'Location'] = 'location'
+      colnames(metadata)[colnames(metadata) == 'Lineage'] = 'lineage'
+      colnames(metadata)[colnames(metadata) == 'AA.Substitutions'] = 'Substitutions'
     }else{
       metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
       metadata <- metadata %>% filter(nchar(as.character(date)) == 10)
       metadata <- add_epi_week(metadata, "date", system = "cdc")
       
       metadata$Date <- epi_week_date(metadata$epi_week, metadata$epi_year,system = "cdc")
-      names(metadata)[names(metadata) == 'pangolin_lineage'] <- 'lineage'
+      colnames(metadata)[colnames(metadata) == 'pangolin_lineage'] <- 'lineage'
       metadata <- Added_VocVoi(metadata)
+      metadata$division <- metadata$location
     }
     
     return(metadata)

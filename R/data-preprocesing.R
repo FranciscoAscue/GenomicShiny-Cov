@@ -1,7 +1,7 @@
 #### Preprocesing data
 
 LocationCountry <- read.csv("Data/Location-country.txt", header = TRUE, sep = ";")
-col <- read.csv("Data/colnames.csv", header = TRUE)
+#col <- read.csv("Data/colnames.csv", header = TRUE)
 
 Added_VocVoi <- function(metadata){
   voc_voi <- metadata$Lineage
