@@ -105,12 +105,18 @@ server <- function(input, output){
     }else{
       metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
       metadata <- metadata %>% filter(nchar(as.character(date)) == 10)
+      Locations <- unique(metadata$division)
+      if(length(Locations) != length(geojson()$Location)){
+        dff <- setdiff(unique(metadata$Location), geojson()$Location)
+        for( i in dff){
+          metadata <- metadata %>% filter(Location != i)
+        }
+      }
       metadata <- add_epi_week(metadata, "date", system = "cdc")
-      
       metadata$Date <- epi_week_date(metadata$epi_week, metadata$epi_year,system = "cdc")
-      colnames(metadata)[colnames(metadata) == 'pangolin_lineage'] <- 'lineage'
+      colnames(metadata)[colnames(metadata) == 'pangolin_lineage'] = 'lineage'
       metadata <- Added_VocVoi(metadata)
-      metadata$division <- metadata$location
+      metadata$location <- metadata$division
     }
     
     return(metadata)
@@ -300,7 +306,7 @@ server <- function(input, output){
   
   output$selectCountry <- renderUI({
     
-    if(is.null(input$Location) | input$selectInput == "Custom")
+    if(is.null(input$Location) | input$selectInput == "augur")
       return()
     
     Fill <- filter(LocationCountry, Location == input$Location)
