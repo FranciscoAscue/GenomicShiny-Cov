@@ -137,7 +137,7 @@ variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switc
     epidem_freq = merge(max, min, by = "Location")
     epidem_freq$N = abs(epidem_freq$deaths.x - epidem_freq$deaths.y)
     epidem_freq[is.na(epidem_freq)] <- 0
-    #epidem_freq$Location <- toupper(epidem_freq$Location)
+    epidem_freq$Location <- toupper(epidem_freq$Location)
     Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
     Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
   }
@@ -215,7 +215,7 @@ split_lineages <- function(tabla,lineage1,gene,val){
   selection <- selection[,c("location","Substitutions","Date")]
   
   add_col <- selection$Substitutions
-  add_col_new <- sapply(add_col, all_mutations, gene ) # search all mutations in spike protein. These function can be search any gen
+  add_col_new <- sapply(add_col, all_mutations, gene, simplify = FALSE) # search all mutations in spike protein. These function can be search any gen
   new_col <- unlist(add_col_new)
   selection$gen_select <- new_col
   interest_mutation <- selection
