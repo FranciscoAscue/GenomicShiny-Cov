@@ -357,6 +357,17 @@ server <- function(input, output){
     
   })
   
+  output$histLineageinput <- renderUI({
+    if(is.null(input$metadata)){
+      return()
+    }
+    textInput(inputId = "lineage",
+              label = "Write a linage",
+              value = max(meta()$lineage)) 
+    
+  })
+  
+  
   output$rangedate2 <- renderUI({
     if(is.null(input$metadata)){
       return()

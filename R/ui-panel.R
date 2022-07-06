@@ -102,9 +102,7 @@ MapStatistics <- tabPanel(
   column(12, h3(" ")),
   column(12, 
          column(6, shinycssloaders::withSpinner(plotlyOutput("lineplot"))),
-         column(2, textInput(inputId = "lineage",
-                          label = "Write a linage",
-                          value = "AY.117"),
+         column(2,  uiOutput("histLineageinput"),
                 
                 numericInput("ngenomes", label = "Minimun genomes", min = 1, 
                              max = 30, value = 1 ),
