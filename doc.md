@@ -59,8 +59,8 @@ ________________________________________________________________________________
 
 <img align="center" width="400" src="img/wf.png">
 
-| File  |  Description  |  i.e. |
-|:----------:|:-------------:|:-----------:|
-|Geojson map | Vectorial map | [GeoJSON](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) |
-|Metadata from GISAID | Pacient status metadata from EpiCoV GISAID |  |
-|Epidemiology data| Positive or death cases reported | |
+| File  |  Description  |  i.e. Peru | i.e. USA | i.e. Colombia |
+|:----------:|:-------------:|:-----------:|:-----------:|:-----------:|
+|Geojson map | Vectorial map | [GeoJSON](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) | [GeoJSON](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) | [GeoJSON](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) |
+|Metadata from GISAID | Pacient status metadata from EpiCoV GISAID |  [peru.tsv](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson)| [usa.tsv](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) | [colombia.tsv](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) |
+|Epidemiology data| Positive or death cases reported | [epiPeru.tsv](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) | [epiUsa.tsv](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) | [epiColombia.tsv](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) |
