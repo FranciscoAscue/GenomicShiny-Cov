@@ -5,19 +5,27 @@
 UploadData <- tabPanel("Upload Data",
                        column(3,
                               
-                              
+                         column(12, style = "background-color:#EAEDED;",    
                               h3(p(style="color:black;text-align:left", 
                                    tags$img(src="https://upload.wikimedia.org/wikipedia/commons/3/34/GISAID_logo.png",
-                                            width="120px",height="60px"),
-                                   tags$img(src="https://cov-lineages.org/assets/images/pangolin.png",
-                                            width="60px",height="60px"),
-                                   tags$img(src="https://nextstrain.org/static/nextstrain-logo-small-ea8c3e13e8c17436264760d638ab970e.png",
-                                            width="60px",height="60px")
-                              )),
+                                            width="150px",height="60px"),
+                                   tags$img(src="https://1000marcas.net/wp-content/uploads/2020/02/GitHub-logo-1.jpg",
+                                            width="100px",height="60px")
+                              ))),
+                         column(12, style = "background-color:#E5E7E9;",  
                               textInput(inputId = "geojsonurl", label = h4("Url to Geojson (Optional)"),value = NULL),
                               
                               fileInput(inputId = "geojson", h4("Upload Geojson File"), accept=c('.geojson','.geocsv')),
                               
+                              h3(" "),
+                              downloadButton("downloadjson", "Download", label = "Download GeoJson"),
+                              h3(" "),
+                              
+                       ),
+                       
+                              h3(" "),
+                       
+                       column(12 ,  style = "background-color:#D7DBDD;", 
                               column(3,radioButtons("selectInput", "Select input",
                                                     choices = list("Gisaid Pacient status" = "GISAID", "Gisaid augur input" = "augur"), 
                                                     selected = "GISAID")),
@@ -31,7 +39,9 @@ UploadData <- tabPanel("Upload Data",
                               ),
                               fileInput(inputId = "metadata", h4("Upload metadata file (.csv/.tsv)"), 
                                         accept=c('text/csv','text/comma-separated-values,text/plain', '.csv','.tsv')),
-                              
+                       
+                       ),
+                      column( 12 ,  style = "background-color:#E5E7E9;",       
                               selectInput(inputId = "DateFormat", 
                                           label = "Select a date format", 
                                           choices = c("%Y%m%d","%Y-%m-%d","%Y/%m/%d","%d-%m-%Y","%d/%m/%Y"),
@@ -47,12 +57,10 @@ UploadData <- tabPanel("Upload Data",
                               
                               fileInput(inputId = "emetadata", h4("Upload Epidemiological CSV File"), 
                                         accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv','.tsv')),
-                              
+                      ),
                               actionButton(inputId = "RunTest", label = h4(icon(name = "file-import"), "Run test"), width = "200px"),
                               
-                              h3(" "),
-                              
-                              downloadButton("downloadjson", "Download", label = "Download GeoJson"),
+
                        ),
                        
                        column(8, aling="center",
@@ -72,10 +80,8 @@ MapStatistics <- tabPanel(
                 shinycssloaders::withSpinner( leafletOutput(outputId = "leaflet_map", height = 550))),
          column(6,
                 column(4,
-                column(12, dateRangeInput("Daterange", 
-                                         "Select date range", 
-                                         start  = "2020-03-01",
-                                         end    = "2022-05-01")      
+                       
+                column(12, uiOutput("rangedate1")     
                 ),
                 column(12,uiOutput("selectVariants")),
                 column(12,radioButtons("Escala", "Select scale",
@@ -102,11 +108,7 @@ MapStatistics <- tabPanel(
                 
                 numericInput("ngenomes", label = "Minimun genomes", min = 1, 
                              max = 30, value = 1 ),
-                
-                dateRangeInput("lineageDate", "Select date range",
-                               start  = "2021-06-01",
-                               end    = "2022-01-27"),
-                
+                uiOutput("rangedate2"),
                 column(4, 
                        radioButtons("stack", "Select plot",
                                     choices = list("stack" = "stack", "lines" = "lines"),
@@ -126,9 +128,7 @@ AnalysisLineages <- tabPanel(
   
   column(12, 
   column(5, shinycssloaders::withSpinner(plotlyOutput("heatmap"), type = 3,  color.background = "white", color = "green")),
-  column(2, dateRangeInput("heatmapDate", "Select date range",
-                        start  = "2021-06-01",
-                        end    = "2022-01-27"),
+  column(2, uiOutput("rangedate3"),
          
          column(12,radioButtons("transpose", "Transpose matrix",
                                choices = list("region_row" = "region_row", 

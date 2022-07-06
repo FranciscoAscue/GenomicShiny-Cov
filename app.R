@@ -104,6 +104,9 @@ server <- function(input, output){
       colnames(metadata)[colnames(metadata) == 'AA.Substitutions'] = 'Substitutions'
     }else{
       metadata <- read.csv(input$metadata$datapath, sep = input$separator, header = TRUE)
+      metadata$authors <- NULL
+      metadata$originating_lab <- NULL
+      metadata$submitting_lab <- NULL
       metadata <- metadata %>% filter(nchar(as.character(date)) == 10)
       Locations <- unique(metadata$division)
       if(length(Locations) != length(geojson()$Location)){
@@ -272,7 +275,7 @@ server <- function(input, output){
     })
   }, sanitize.text.function = function(x) x)
 
-  output$tabla <- DT::renderDataTable( head(meta() ), 
+  output$tabla <- DT::renderDataTable( meta(), 
               options = list(scrollX = TRUE),rownames = FALSE)
   
   output$mutation_tabla <- DT::renderDataTable(mutatation_change()$mutations_table, 
@@ -342,6 +345,38 @@ server <- function(input, output){
                 selected = NA)
     
   })
+  
+  output$rangedate1 <- renderUI({
+    if(is.null(input$metadata)){
+      return()
+    }
+    dateRangeInput("Daterange", 
+                   "Select date range", 
+                   start  = min(meta()$date),
+                   end    = max(meta()$date))  
+    
+  })
+  
+  output$rangedate2 <- renderUI({
+    if(is.null(input$metadata)){
+      return()
+    }
+    dateRangeInput("lineageDate", "Select date range",
+                   start  = min(meta()$date),
+                   end    = max(meta()$date))
+    
+  })
+  
+  output$rangedate3 <- renderUI({
+    if(is.null(input$metadata)){
+      return()
+    }
+    dateRangeInput("heatmapDate", "Select date range",
+                   start  = min(meta()$date),
+                   end    = max(meta()$date))
+    
+  })
+  
   
 }
 
