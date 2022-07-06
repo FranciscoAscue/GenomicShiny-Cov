@@ -99,7 +99,7 @@ matrix_distribution <- function(metadata, mindate, maxdate, frecuency, transp){
   return(cuadro_motivo)
 }
 
-variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switch = "VocVoi", input = "Cases per Day"){
+variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switch = "VocVoi", input = "CC"){
   
   cities <- as.data.frame(st_coordinates(st_centroid(map,of_largest_polygon = TRUE)))
   map$Location <- toupper(map$Location)
@@ -134,11 +134,11 @@ variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switc
     
     max <- epidem %>% filter(date == maxdate )
     min <- epidem %>% filter(date == mindate )
-    epidem = merge(max, min, by = "Location")
-    epidem$N = epidem$deaths.x - epidem$deaths.y
-    epidem[is.na(epidem)] <- 0
-    epidem$Location <- toupper(epidem$Location)
-    Merge_data <- inner_join(map,epidem, by = 'Location' )
+    epidem_freq = merge(max, min, by = "Location")
+    epidem_freq$N = epidem_freq$deaths.x - epidem_freq$deaths.y
+    epidem_freq[is.na(epidem_freq)] <- 0
+    epidem_freq$Location <- toupper(epidem_freq$Location)
+    Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
     Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
   }
   
