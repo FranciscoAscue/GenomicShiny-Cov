@@ -114,8 +114,9 @@ server <- function(input, output){
       }
       metadata <- add_epi_week(metadata, "date", system = "cdc")
       metadata$Date <- epi_week_date(metadata$epi_week, metadata$epi_year,system = "cdc")
-      colnames(metadata)[colnames(metadata) == 'pangolin_lineage'] = 'lineage'
+      colnames(metadata)[colnames(metadata) == 'pangolin_lineage'] = 'Lineage'
       metadata <- Added_VocVoi(metadata)
+      colnames(metadata)[colnames(metadata) == 'Lineage'] = 'lineage'
       metadata$location <- metadata$division
     }
     
@@ -294,7 +295,7 @@ server <- function(input, output){
   #### renderUI panels and selectInput ####
   
   output$selectLocation <- renderUI({
-    if(input$selectInput == "Custom")
+    if(input$selectInput == "augur")
       return()
     
     selectInput(inputId = "Location", 
