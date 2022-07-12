@@ -194,7 +194,7 @@ server <- function(input, output){
     req(input$Gene)
     req(input$Lineages)
     mutations_perfil  <- split_lineages(meta(), input$Lineages, input$Gene, input$pfrecuency )
-    if(mutations_perfil$table == "NaN"){
+    if(mutations_perfil[2] == "NaN"){
       mt = matrix(0, 8, 4)
       mt = as.data.frame(mt)
       colnames(mt) = c(rep("No Mutations",4))
