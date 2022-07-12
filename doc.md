@@ -59,8 +59,8 @@ ________________________________________________________________________________
 
 <img align="center" width="400" src="img/wf.png">
 
-| File  |  Description  |  i.e. Peru | i.e. USA | i.e. Colombia |
-|:----------:|:-------------:|:-----------:|:-----------:|:-----------:|
-|Geojson map | Vectorial map | [GeoJSON](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/peru_departamental.geojson) | [GeoJSON](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/usa_states.geojson) | [GeoJSON](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/colombia_dep.geojson) |
-|Metadata from GISAID | Pacient status metadata from EpiCoV GISAID |  [peru.tsv](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/peru.tsv)| [usa.tsv](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) | [colombia.tsv](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/colombia.tsv) |
-|Epidemiology data| Positive or death cases reported | [epiPeru.csv](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/epiPeru.csv) | [epiUsa.tsv](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv) | [epiColombia.csv]([https://www.datos.gov.co/](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/epiColombia.csv)) |
+| File  |  Description  |  i.e. Peru | i.e. USA | i.e brazil | i.e. Colombia |
+|:----------:|:-------------:|:-----------:|:-----------:|:-----------:|:-----------:|
+|Geojson map | Vectorial map | [GeoJSON](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/peru_departamental.geojson) | [GeoJSON](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/usa_states.geojson) | [GeoJSON](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/brazil_low.geojson) |[GeoJSON](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/colombia_dep.geojson) |
+|Metadata from GISAID | Pacient status metadata from EpiCoV GISAID |  [peru.tsv](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/peru.tsv)| [usa.tsv](https://github.com/FranciscoAscue/geojson-examples/blob/master/peru_departamental.geojson) | [brazil.tsv]() | [colombia.tsv](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/colombia.tsv) |
+|Epidemiology data| Positive or death cases reported | [epiPeru.csv](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/epiPeru.csv) | [epiUsa.tsv](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv) | [epiBrazil.csv]() |[epiColombia.csv]([https://www.datos.gov.co/](https://github.com/FranciscoAscue/GenomicShiny-examples/blob/master/epiColombia.csv)) |
