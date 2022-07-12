@@ -67,10 +67,10 @@ stackvariant <- function(data, mindate, maxdate, ngenomes, varline){
 
 freq_voc_voi <- function(data, lin){
   
-    dd1 = strsplit(lin, split = ",")
-    data <- data %>% filter(lineage == dd1[[1]])
-    data <- data %>% group_by(Date, epi_week) %>% summarise(Frecuency = n())
-    return(data)
+  dd1 = strsplit(lin, split = ",")
+  data <- data %>% filter(lineage == dd1[[1]])
+  data <- data %>% group_by(Date, epi_week) %>% summarise(Frecuency = n())
+  return(data)
   # if(!is.element(lin, unique(data$lineage))){
   #   return(data)
   # } else{
@@ -118,28 +118,32 @@ variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switc
       cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
     }
   }
-  
   total <- metadata %>% group_by(location) %>% summarise(total = n())
   cities <- merge(x  = cities, y = total, by = 'location', all = TRUE )
   cities[is.na(cities)] <- 0
   for(i in 1:length(cities$total)){if(cities$total[i] == 0){cities$total[i] = 1}}
   
-  if(input == "CD"){
-    epidem_freq <- epidem %>% filter(date >= mindate, date <= maxdate)
-    epidem_freq <- epidem_freq %>% group_by(Location) %>% summarise( N = n())
-    epidem_freq$Location <- toupper(epidem_freq$Location)
-    Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
-    Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
+  if( input != "NN"){
+    if(input == "CD"){
+      epidem_freq <- epidem %>% filter(date >= mindate, date <= maxdate)
+      epidem_freq <- epidem_freq %>% group_by(Location) %>% summarise( N = n())
+      epidem_freq$Location <- toupper(epidem_freq$Location)
+      Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
+      Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
+    }else{
+      
+      max <- epidem %>% filter(date == maxdate )
+      min <- epidem %>% filter(date == mindate )
+      epidem_freq = merge(max, min, by = "Location")
+      epidem_freq$N = abs(epidem_freq$deaths.x - epidem_freq$deaths.y)
+      epidem_freq[is.na(epidem_freq)] <- 0
+      epidem_freq$Location <- toupper(epidem_freq$Location)
+      Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
+      Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
+    }
   }else{
-    
-    max <- epidem %>% filter(date == maxdate )
-    min <- epidem %>% filter(date == mindate )
-    epidem_freq = merge(max, min, by = "Location")
-    epidem_freq$N = abs(epidem_freq$deaths.x - epidem_freq$deaths.y)
-    epidem_freq[is.na(epidem_freq)] <- 0
-    epidem_freq$Location <- toupper(epidem_freq$Location)
-    Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
-    Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
+    Merge_data <- map
+    Merge_data$N <- rep(0, length(map$Location) )
   }
   
   pal <- colorNumeric(palette = "Greys", NULL)
@@ -215,31 +219,31 @@ split_lineages <- function(tabla,lineage1,gene,val){
   selection <- selection[,c("location","Substitutions","Date")]
   
   add_col <- selection$Substitutions
-  add_col_new <- sapply(add_col, all_mutations, gene, simplify = FALSE) # search all mutations in spike protein. These function can be search any gen
+  add_col_new <- sapply(add_col, all_mutations, gene, simplify = TRUE) # search all mutations in spike protein. These function can be search any gen
   new_col <- unlist(add_col_new)
   selection$gen_select <- new_col
   interest_mutation <- selection
   profiles <- uniq(interest_mutation,val,gene)
-
+  
   if (sum(is.na(profiles)) == 0 & dim(profiles)[1] >= 1){
     tbl_resume <- do_table(profiles,gene)
     result_table <- tbl_total(tbl_resume,profiles,gene)
     newdata <- interest_mutation[ (interest_mutation$gen_select %in% profiles$gen_select), ]
     heatmap_mutations <- newdata %>% count(newdata$gen_select,newdata$Date) 
-  
+    
     names(heatmap_mutations) <- c("gene","epi_week","count") 
     haplotype <- c()
-  
+    
     for (z in heatmap_mutations$gene){
       haplo <- profiles[profiles$gen_select==z,]
-     haplotype <- append(haplotype,haplo$hap)
-     }
-  
+      haplotype <- append(haplotype,haplo$hap)
+    }
+    
     heatmap_mutations$Profiles <- haplotype
-  heatmap_mutations$gene = str_replace_all(heatmap_mutations$gene,gene,"")
-  
-  return(list(mutations = tbl_resume, table = result_table, heatmap = heatmap_mutations))
-  
+    heatmap_mutations$gene = str_replace_all(heatmap_mutations$gene,gene,"")
+    
+    return(list(mutations = tbl_resume, table = result_table, heatmap = heatmap_mutations))
+    
   }else{
     return(list(mutations = "NaN", table = "NaN", heatmap = "NaN"))
   }

@@ -4,8 +4,8 @@
 
 UploadData <- tabPanel("Upload Data",
                        column(3,
-                              
-                         column(12, style = "background-color:#EAEDED;",    
+                            
+                         column(12,
                               h3(p(style="color:black;text-align:left", 
                                    tags$img(src="https://upload.wikimedia.org/wikipedia/commons/3/34/GISAID_logo.png",
                                             width="150px",height="60px"),
@@ -42,6 +42,9 @@ UploadData <- tabPanel("Upload Data",
                        
                        ),
                       column( 12 ,  style = "background-color:#E5E7E9;",       
+                              column(8,radioButtons("EpidemInput", "Select epidemiological file",
+                                                    choices = list("Cumulative cases per Day" = "CC", "Cases per Day" = "CD", "No file" = "NN"), 
+                                                    selected = "NN")),
                               selectInput(inputId = "DateFormat", 
                                           label = "Select a date format", 
                                           choices = c("%Y%m%d","%Y-%m-%d","%Y/%m/%d","%d-%m-%Y","%d/%m/%Y"),
@@ -51,9 +54,6 @@ UploadData <- tabPanel("Upload Data",
                                                     choices = list("Tab" = "\t", "Comma" = ",", "semicolon" = ";"), 
                                                     selected = "\t", inline = TRUE)),
                               
-                              column(8,radioButtons("EpidemInput", "Select epidemiological file",
-                                                    choices = list("Cumulative cases per Day" = "CC", "Cases per Day" = "CD"), 
-                                                    selected = "CD", inline = TRUE)),
                               
                               fileInput(inputId = "emetadata", h4("Upload Epidemiological CSV File"), 
                                         accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv','.tsv')),

@@ -144,7 +144,7 @@ server <- function(input, output){
   #### shiny reactive -> Output ### 
   
   var_datamap <- reactive({
-
+    req(input$metadata)
     datamap <- variant_distribution(map = geojson(), epidem = epidem_data(), 
                                     metadata = meta(), input$Daterange[1], input$Daterange[2],input$switch, input$EpidemInput)
     
@@ -162,6 +162,7 @@ server <- function(input, output){
   })
   
   lineage_var_data <- reactive({
+    
     metadata <- as.data.frame(meta())
     metadata <- stackvariant(metadata,  input$lineageDate[1], input$lineageDate[2], 
                              input$ngenomes, input$Varline)
@@ -169,7 +170,6 @@ server <- function(input, output){
   })
   
   hist_data <- reactive({
-    
     metadata <- as.data.frame(meta())
     metadata$date <- as.Date(metadata$date)
     data_lineage <- freq_voc_voi(metadata, input$lineage)
@@ -229,7 +229,7 @@ server <- function(input, output){
   output$leaflet_map <- renderLeaflet({
     basemap <- leaflet_plot(data = var_datamap()$df, palette = var_datamap()$pal,
                             long = var_datamap()$long, lat = var_datamap()$lat, 
-                            titleLegend = "Mortality rate x10⁵", var = var_datamap()$var,
+                            titleLegend = "rate x10⁵", var = var_datamap()$var,
                             total = var_datamap()$total)
   })
   
@@ -364,7 +364,6 @@ server <- function(input, output){
     textInput(inputId = "lineage",
               label = "Write a linage",
               value = max(meta()$lineage)) 
-    
   })
   
   
