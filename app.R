@@ -1,9 +1,9 @@
 ################################################################# GenomicShiny-cov v.0.0.1######################################################################
 
 #### Source scripts 
+source("R/dependencies.R", local = TRUE)
 source("R/data-preprocesing.R", local = TRUE) # Pre processing data with scripts (pacient status metadata from GISAID)
 source("R/ui-panel.R", local = TRUE)
-source("R/dependencies.R", local = TRUE)
 source("config.R", local = TRUE)
 source("tests/test_metadata.R", local = TRUE)
 # source("R/data-mysql.R", local = TRUE) # Optional management data from MySQL database 
