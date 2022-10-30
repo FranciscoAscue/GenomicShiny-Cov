@@ -12,12 +12,11 @@ RUN apt-get update && \
 	apt-get upgrade -y && \
 	apt-get clean
 
-COPY renv.lock ./renv.lock
 COPY . ./app
 
 RUN Rscript /app/R/dependencies.R
 
 EXPOSE 3838
 
-CMD ["R", "-e", "shiny::runApp['/app', host = '0.0.0.0', port = 3838]"]
+CMD ["R", "-e", "shiny::runApp('/app', host = '0.0.0.0', port = 3838)"]
 
