@@ -28,6 +28,9 @@ dependencies <- c("shiny","raster","shinycssloaders","shinythemes","plotly","fos
                   "viridisLite","viridis", "RColorBrewer","stringr","tidyverse","ggplot2","splitstackshape","geojsonio")
 
 # Package R dependencies
+install.packages("devtools")
+library(devtools)
+install_version("rlang", version = "1.0.6", repos = "http://cran.us.r-project.org")
 
 for(i in dependencies){missingPackages(i)
   library(i, character.only = TRUE)

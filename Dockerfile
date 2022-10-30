@@ -15,8 +15,7 @@ RUN apt-get update && \
 COPY renv.lock ./renv.lock
 COPY . ./app
 
-RUN Rscript -e 'install.packages("renv")'
-RUN Rscript -e 'renv::restore()'
+RUN Rscript /app/R/dependencies.R
 
 EXPOSE 3838
 
