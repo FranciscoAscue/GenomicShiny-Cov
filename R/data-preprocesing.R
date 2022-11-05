@@ -1,33 +1,31 @@
-################################################################################
-# Preprocesing data
-################################################################################
+#### Preprocesing data
+
 LocationCountry <- read.csv("Data/Location-country.txt", header = TRUE, sep = ";")
-col <- read.csv("Data/colnames.csv", header = TRUE)
+#col <- read.csv("Data/colnames.csv", header = TRUE)
 
 Added_VocVoi <- function(metadata){
   voc_voi <- metadata$Lineage
   lineage2var <- read.csv("Data/VOC.VOI.csv")
-  
   for(i in 1:length(lineage2var$Lineages)){
     voc_voi <- gsub(lineage2var$Lineages[i], lineage2var$VOC.VOI[i], voc_voi)
   }
   metadata$VOC.VOI <- voc_voi
+  
   return(metadata)
 }
 
 metadata_preprosesing  <- function(metadata, region, country, geoLocation){
   
-  metadata$Location <- gsub(region,"", metadata$Location, fixed = T) 
+  metadata$Location <- gsub(region,"", metadata$Location, fixed = T)
   metadata$Location <- gsub(country,"", metadata$Location, fixed = T)
   metadata$Location <- gsub("\\/.*","", metadata$Location)
+  
   metadata$Location <- trimws(metadata$Location, which = "both", whitespace = "[ \t\r\n]")
   metadata$Location <- toupper(metadata$Location)
   geoLocation$Location <- toupper(geoLocation$Location)
-  
   Locations <- unique(metadata$Location)
   
   if(length(Locations) != length(geoLocation$Location)){
-    warning("Different numbers of locations!!")
     dff <- setdiff(unique(metadata$Location), geoLocation$Location)
     for( i in dff){
       metadata <- metadata %>% filter(Location != i)
@@ -35,77 +33,164 @@ metadata_preprosesing  <- function(metadata, region, country, geoLocation){
   }else{
     message("Pass")
   }
+  
   metadata <- Added_VocVoi(metadata)
   metadata <- metadata %>% filter(nchar(as.character(Collection.date)) == 10)
   metadata <- add_epi_week(metadata, "Collection.date", system = "cdc")
-  metadata$Date <- epi_week_date(metadata$epi_week,metadata$epi_year,system = "cdc")
-  metadata$AA.Substitutions = str_replace_all(metadata$AA.Substitutions, pattern = c("\\(" = "", "\\)"= ""))
   
+  metadata$Date <- epi_week_date(metadata$epi_week, metadata$epi_year,system = "cdc")
+  metadata$AA.Substitutions = str_replace_all(metadata$AA.Substitutions, 
+                                              pattern = c("\\(" = "", "\\)"= ""))
   return(metadata)
 }
 
 stackvariant <- function(data, mindate, maxdate, ngenomes, varline){
   
-#  inter <- function(data){
-#    data <- data %>% filter(date >= mindate, date <= maxdate)
-#    data <- add_epi_week(data, "date", system = "cdc")
-#    data$Date <-  epi_week_date(data$epi_week, data$epi_year, system = "cdc")
-#    return(data)
-#}
+  data <- data %>% dplyr::filter(date >= mindate, date <= maxdate)
   
   if( varline == "Lineages"){
-    #data <- inter(data)
-    data_1 <- data %>% group_by(Date, epi_week,  lineage) %>% summarise( n = n()) %>%
+    
+    data <- data %>% group_by(Date, epi_week,  lineage) %>% summarise( n = n()) %>%
       mutate(Frecuency = n / sum(n))
     
   }else{
-    #data <- inter(data)
-    data_1 <- data %>% group_by(Date,epi_week,  VOC.VOI) %>% summarise( n = n()) %>%
+    data <- data %>% group_by(Date,epi_week,  VOC.VOI) %>% summarise( n = n()) %>%
       mutate(Frecuency = n / sum(n))
   }
   
-  data_1$Frecuency = round(data_1$Frecuency, 2)
-  names(data_1) <- c("Date", "Epi.Week","Select","N", "Frecuency")
-  data_1 <- data_1 %>% filter(N >= ngenomes)
+  data$Frecuency = round(data$Frecuency, 2)
+  names(data) <- c("Date", "Epi.Week","Select","N", "Frecuency")
+  data <- data %>% filter(N >= ngenomes)
   
-  return(data_1)
+  return(data)
 }
 
-
-freq_voc_voi <- function(data_1, lin){
+freq_voc_voi <- function(data, lin){
   
-  if(is.element(lin, unique(data_1$lineage))){
-    
-    # separamos por año para obtener una mejor vision
-    data_1 <- data_1 %>% filter(lineage == lin)
-    #data_1$date <- as.Date(as.character(data_1$date))
-    #data_1 <- add_epi_week(data_1, "date", system = "cdc")
-    #data_1$Date <-  epi_week_date(data_1$epi_week, data_1$epi_year, system = "cdc")
-    data_1 <- data_1 %>% group_by(Date, epi_week) %>% summarise(Frecuency = n())
-    return(data_1)
-    
-  } else{
-    return(data.frame(Date = NULL, epi_week = NULL, Frecuency = NULL))
+  dd1 = strsplit(lin, split = ",")
+  data <- data %>% filter(lineage == dd1[[1]])
+  data <- data %>% group_by(Date, epi_week) %>% summarise(Frecuency = n())
+  return(data)
+  # if(!is.element(lin, unique(data$lineage))){
+  #   return(data)
+  # } else{
+  #   return(data.frame(Date = NULL,  epi_week = NULL,  Frecuency = NULL))
+  # }
+  
+}
+
+matrix_distribution <- function(metadata, mindate, maxdate, frecuency, transp){
+  
+  data <- as.data.frame(metadata)
+  data$date <- as.Date(data$date)
+  data <- data %>% filter(date >= mindate, date <= maxdate)
+  
+  counts <- data %>% group_by(location, lineage) %>% summarise(n = n())
+  names(counts) <- c("location", "lineage", "Freq")
+  counts <- counts %>% filter(Freq >= frecuency)
+  counts <- as.data.frame(counts)
+  
+  cuadro_motivo <- create.matrix(counts, tax.name = "location", locality = "lineage",
+                                 abund.col = "Freq", abund = TRUE)
+  
+  if( transp == "lineages_row" ){
+    return(t(as.data.frame(cuadro_motivo)))
+  }
+  return(cuadro_motivo)
+}
+
+variant_distribution <- function(map, metadata, epidem,  mindate, maxdate, switch = "VocVoi", input = "CC"){
+  
+  cities <- as.data.frame(st_coordinates(st_centroid(map,of_largest_polygon = TRUE)))
+  map$Location <- toupper(map$Location)
+  cities$location <- map$Location
+  metadata <- metadata %>% filter(date >= mindate , date <= maxdate)
+  metadata$location <- toupper(metadata$location)
+  
+  if( switch == "VocVoi" ){
+    for( var in unique(metadata$VOC.VOI)){
+      temp <- metadata %>% filter(VOC.VOI == var) %>% group_by(location) %>% summarise( !!paste0(var) := n())
+      cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
+    }
+  }else{
+    for( var in unique(metadata$lineage)){
+      temp <- metadata %>% filter(lineage == var) %>% group_by(location) %>% summarise( !!paste0(var) := n())
+      cities <- merge(x  = cities, y = temp, by = 'location', all = TRUE  )
+    }
+  }
+  total <- metadata %>% group_by(location) %>% summarise(total = n())
+  cities <- merge(x  = cities, y = total, by = 'location', all = TRUE )
+  cities[is.na(cities)] <- 0
+  for(i in 1:length(cities$total)){if(cities$total[i] == 0){cities$total[i] = 1}}
+  
+  if( input != "NN"){
+    if(input == "CD"){
+      epidem_freq <- epidem %>% filter(date >= mindate, date <= maxdate)
+      epidem_freq <- epidem_freq %>% group_by(Location) %>% summarise( N = n())
+      epidem_freq$Location <- toupper(epidem_freq$Location)
+      Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
+      Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
+    }else{
+      
+      max <- epidem %>% filter(date == maxdate )
+      min <- epidem %>% filter(date == mindate )
+      epidem_freq = merge(max, min, by = "Location")
+      epidem_freq$N = abs(epidem_freq$deaths.x - epidem_freq$deaths.y)
+      epidem_freq[is.na(epidem_freq)] <- 0
+      epidem_freq$Location <- toupper(epidem_freq$Location)
+      Merge_data <- inner_join(map,epidem_freq, by = 'Location' )
+      Merge_data$N <- (Merge_data$N/Merge_data$Population)*100000
+    }
+  }else{
+    Merge_data <- map
+    Merge_data$N <- rep(0, length(map$Location) )
   }
   
+  pal <- colorNumeric(palette = "Greys", NULL)
+  long <- cities$X
+  lat <- cities$Y
+  var <- cities[,4:(length(cities)-1)]
+  total <- cities$total
+  return( list( df = Merge_data, pal = pal, long = long, lat = lat, var = var, total = total))
 }
 
-#read data#
-mutations <- function(data,xmin= "2021-01-01", xmax="2022-02-25" ,freq = 50,variant="Omicron"){
+sampling_distribution <- function(map , metadata, mindate, maxdate, sampling, scale_map){
   
-  data <- data[data$VOC.VOI == variant,] 
-  data <- data %>% filter(date >= xmin, date <= xmax)
-  #data$week_date <- epi_week_date(data$epi_week,data$epi_year,system="cdc")
-  data <- as.data.frame(data)
-  #data$dec_date <- decimal_date(ymd(data$Date))
+  map$Location <- toupper(map$Location)
+  metadata <- metadata %>% filter( date >= mindate, date <= maxdate )
+  metadata$location <- toupper(metadata$location)
+  if(sampling == "Total"){
+    metadata <- metadata
+    pal <- colorNumeric(  palette = "Reds", NULL)
+  } else { 
+    metadata <- metadata %>% filter(VOC.VOI == sampling )
+    pal <- colorNumeric(  palette = "BuPu", NULL)
+  }
   
+  if(scale_map == "linear"){
+    count_region <- metadata %>% group_by(location) %>% summarise( n = n())
+  } else{
+    count_region <- metadata %>% group_by(location) %>% summarise( n = log10(n()))
+  }
+  
+  count_region[is.na(count_region)] <- 0
+  # count_region$location <- toupper(count_region$location)
+  colnames(count_region) <- c("Location", "N")
+  Merge_data <- inner_join(map, count_region , by  = "Location")
+  #Merge_data[is.na(Merge_data)] <- 0
+  #Merge_data <- sf::st_as_sf(Merge_data)
+  return(list(df = Merge_data, pal = pal))
+}
 
-  #separate by commas#
+mutations <- function(data, gene, freq = 50,lineage="BA.1"){
+  
+  data <- data[data$lineage == lineage,] 
+  data <- data 
+  data <- as.data.frame(data)
+  
   elements <- unlist(strsplit(data$Substitutions, ","))
   a <- sort(unique(elements))
-  b <- grep("Spike", a, value = TRUE)
-  
-  #prepare the loop#
+  b <- grep(gene, a, value = TRUE)
   
   h <- c() 
   j <- c()
@@ -116,7 +201,6 @@ mutations <- function(data,xmin= "2021-01-01", xmax="2022-02-25" ,freq = 50,vari
   
   k <- data.frame(h,j)
   l <- k%>%group_by(h,j)%>%summarise(n=n())
-  #plot#
   l <- as.data.frame(l)
   names(l) <- c("week_date","mutation","freq")
   
@@ -129,71 +213,93 @@ mutations <- function(data,xmin= "2021-01-01", xmax="2022-02-25" ,freq = 50,vari
   return(m) 
 }
 
-split_lineages <- function(tabla,lineage1,gene,val){ # Main function
-  
-  #tabla$date1 <- epi_week_date(tabla$epi_week,tabla$epi_year,system = "cdc")
+split_lineages <- function(tabla,lineage1,gene,val){
   
   selection <- filter(tabla, lineage == lineage1)
-  selection <- selection[,c("location","Substitutions","Date")] #selected columns for down analysis
+  selection <- selection[,c("location","Substitutions","Date")]
   
-  ## Function 1 add new column order and filter some gene
-  interest_mutation <- all_mutations(selection,gene) # search all mutations in spike protein. These function can be search any gen
-  
-  ## Function 2 selected uniq profile of mutations 
+  add_col <- selection$Substitutions
+  add_col_new <- sapply(add_col, all_mutations, gene, simplify = TRUE) # search all mutations in spike protein. These function can be search any gen
+  new_col <- unlist(add_col_new)
+  selection$gen_select <- new_col
+  interest_mutation <- selection
   profiles <- uniq(interest_mutation,val,gene)
   
-  ## Function 3 selected all mutations and return a dataframe in order 
-  tbl_resume <- do_table(profiles,gene)
-  
-  ## Function 4 search mutations and return the final table to show
-  result_table <- tbl_total(tbl_resume,profiles,gene)
-  
-  # aditional steps to do dataframe to input heatmap
-  newdata <- interest_mutation[ (interest_mutation$gen_select %in% profiles$gen_select), ]
-  heatmap_mutations <- newdata %>% count(newdata$gen_select,newdata$Date) 
-  names(heatmap_mutations) <- c("gene","epi_week","count") ## Here is possible return value for heatmap
-  
-  haplotype <- c()
-  
-  for (z in heatmap_mutations$gene){
-    haplo <- profiles[profiles$gen_select==z,]
-    haplotype <- append(haplotype,haplo$hap)
+  if (sum(is.na(profiles)) == 0 & dim(profiles)[1] >= 1){
+    tbl_resume <- do_table(profiles,gene)
+    result_table <- tbl_total(tbl_resume,profiles,gene)
+    newdata <- interest_mutation[ (interest_mutation$gen_select %in% profiles$gen_select), ]
+    heatmap_mutations <- newdata %>% count(newdata$gen_select,newdata$Date) 
+    
+    names(heatmap_mutations) <- c("gene","epi_week","count") 
+    haplotype <- c()
+    
+    for (z in heatmap_mutations$gene){
+      haplo <- profiles[profiles$gen_select==z,]
+      haplotype <- append(haplotype,haplo$hap)
+    }
+    
+    heatmap_mutations$Profiles <- haplotype
+    heatmap_mutations$gene = str_replace_all(heatmap_mutations$gene,gene,"")
+    
+    return(list(mutations = tbl_resume, table = result_table, heatmap = heatmap_mutations))
+    
+  }else{
+    return(list(mutations = "NaN", table = "NaN", heatmap = "NaN"))
   }
-  
-  heatmap_mutations$Profiles <- haplotype
-  heatmap_mutations$gene = str_replace_all(heatmap_mutations$gene,gene,"")
-  #return(heatmap_mutations)
-  return(list(table = result_table, heatmap = heatmap_mutations))
 }
 
-all_mutations <- function(mutations,gene) {  #Function 1
-  gen_muts <- c()
-  for (i in 1:nrow(mutations)){
-    static <- c()
-    nums <- c()
-    list_mutations <-strsplit(mutations$Substitutions[i], ",")
-    for (p in list_mutations[[1]]){
-      if(grepl(gene,p) == TRUE){
-        num <- stringr::str_extract(p, "\\d+")
-        nums <- append(nums,as.numeric(num))
-        static <- append(static,p)
-      } 
+all_mutations <- function(elements,gene) {  #Function 1
+  static <- c()
+  nums <- c()
+  
+  list_mutations <-strsplit(elements, ",")
+  for (p in list_mutations[[1]]){
+    if(grepl(gene,p) == TRUE){
+      p2 = str_replace_all(p,gene,"")
+      num <- stringr::str_extract(p2, "\\d+")
+      nums <- append(nums,as.numeric(num))
+      static <- append(static,p)
     }
-    my_data <- data.frame(static, nums)
+  }
+  
+  my_data <- data.frame(static, nums)
+  
+  if (length(my_data) > 0) {
     my_data <- my_data[order(my_data$nums),]
     collapse <- paste(my_data$static, collapse = ",")
-    gen_muts <- append(gen_muts,collapse)
+    
     static <- c()
     nums <- c()
-  }
-  mutations$gen_select <- gen_muts
-  return(mutations)
+    
+    return(collapse)
+    
+  } 
+  else {
+    
+    # static <- c()
+    # nums <- c()
+    # 
+    return(NA)
+  } 
+  
 }
 
-uniq <- function(interest_mutation,val,gene){ #Function 2
+uniq <- function(interest_mutation,val,gene){
+  interest_mutation <- interest_mutation %>% drop_na()
   figure <- interest_mutation %>% group_by(gen_select) %>% summarize(count=n()) %>%  filter(count > val)
-  figure$hap <- sprintf("%03d", 1:nrow(figure))
-  return(figure)
+  
+  if (dim(figure)[1] == 0) { 
+    
+    return(figure)
+    
+  } else {
+    
+    figure$hap <- sprintf("%03d", 1:nrow(figure))
+    figure[complete.cases(figure),]
+    return(figure)
+  }
+  
 }
 
 do_table <- function(profiles,gene){
@@ -216,15 +322,16 @@ do_table <- function(profiles,gene){
     
     pos <- stringr::str_extract(y, "\\d+")
     mut <- strsplit(y, split = pos)
-    
     reference <- append(reference,mut[[1]][1])
     position <- append(position,as.numeric(pos))
     change <- append(change,mut[[1]][2])
     
   }
-  
+  reference <- gsub("ins","-", reference, fixed = TRUE)
   table_1 <- data.frame(reference, change, position)
   table_1 <- table_1[order(table_1$position),]
+  na.omit(table_1)
+  
   return(table_1)
   
 }
@@ -232,20 +339,20 @@ do_table <- function(profiles,gene){
 tbl_total <- function(tbl_resume,profiles,gene) {
   
   profiles$gen_select = str_replace_all(profiles$gen_select,gene,"")
+  
   for (y in 1:nrow(profiles)){
     bools <- c()
     for (i in 1:nrow(tbl_resume)){
-      
       val <- paste0(tbl_resume$reference[i],tbl_resume$position[i],tbl_resume$change[i])
       bool <- str_detect(profiles$gen_select[y],val)
-      bools <-append(bools,bool)
+      
+      if(bool == TRUE){
+        bools <-append(bools,tbl_resume$change[i])
+      }else{
+        bools <-append(bools,NA)
+      }
     }
-    bools[isTRUE(bools)] <- 1
     tbl_resume[paste0(profiles$hap[y])] <- bools
   }
   return(tbl_resume)
 }
-
-
-
-

@@ -1,5 +1,5 @@
 ################################################################################
-## ubuntu 20.04 / 21.10
+## ubuntu 20.04 / 21.10 / 22.04
 ## debian 10
 # Install dependencies 
 # . libprotobuf-dev
@@ -9,6 +9,7 @@
 # . libgdal-dev
 
 ################################################################################
+
 # Install missing packages
 
 missingPackages <- function(pkg){
@@ -21,21 +22,26 @@ missingPackages <- function(pkg){
       }
     }
 }
-################################################################################
 
-dependencies <- c("shiny","shinycssloaders","pheatmap","plotly","fossil",
-                  "remotes","dplyr","rgdal","sp","sf","geojsonsf","DT","htmlwidgets",
-                  "leaflet","leaflet.minicharts","viridisLite","viridis",
-                  "RColorBrewer","rjson")
+dependencies <- c("shiny","raster","shinycssloaders","shinythemes","plotly","fossil", "remotes","dplyr",
+                  "rgdal","sp","sf","lwgeom","geojsonsf","DT","htmlwidgets", "leaflet","leaflet.minicharts",
+                  "viridisLite","viridis", "RColorBrewer","stringr","tidyverse","ggplot2","splitstackshape","geojsonio")
 
-################################################################################
 # Package R dependencies
-################################################################################
-for(i in dependencies){
-  missingPackages(i)
-  library(i, character.only = TRUE)
+if( !is.element("devtools",rownames(installed.packages() ) ) ){
+  install.packages("devtools")
 }
 
+library(devtools)
+
+if( !is.element("rlang",rownames(installed.packages() ) )  ){
+  install_version("rlang", version = "1.0.6", repos = "http://cran.us.r-project.org")
+}
+
+
+for(i in dependencies){missingPackages(i)
+  library(i, character.only = TRUE)
+}
 
 if( !is.element("epical",rownames(installed.packages() ) ) ){
   remotes::install_github("chrismerkord/epical")
@@ -45,9 +51,5 @@ sf::sf_use_s2(FALSE)
 
 library(epical)
 library(splines)
-library(splitstackshape)
-library(stringr)
-library(tidyverse)
-library(ggplot2)
 ################################################################################
 

@@ -1,8 +1,8 @@
-if( !is.element("RMySQL",rownames(installed.packages() ) ) ){
-  install.packages("RMySQL")
-}
+##if( !is.element("RMySQL",rownames(installed.packages() ) ) ){
+##  install.packages("RMySQL")
+##}
 
-library(RMySQL)
+#library(RMySQL)
 
 ## data from MySQL
 metadata_sql <- function(db, table, host = 'localhost', usr = 'user', pswd = 'password', mindate = NULL, maxdate = NULL){
