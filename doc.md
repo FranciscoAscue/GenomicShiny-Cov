@@ -54,6 +54,25 @@ Download the code from the following [LINK](https://github.com/FranciscoAscue/Ge
 ```r
 runApp(launch.browser = TRUE) 
 ```
+
+##### Build docker image
+
+```bash
+git clone https://github.com/FranciscoAscue/GenomicShiny-Cov.git
+
+cd GenomicShiny-Cov
+
+docker build .
+```
+
+##### Pull docker images from DockerHub
+
+```bash
+docker pull fascue/genomicshiny0.1
+```
+
+
+
 ________________________________________________________________________________________________________
 ### Input Files and Usage
 
