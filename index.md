@@ -4,7 +4,7 @@ GenomicShiny-Cov is a shiny application for genomics surveillance. This applicat
 
 ![](img/g676.png)
 
-see deployment [railway]()
+see deployment [railway](https://genomicshiny-cov-production.up.railway.app/)
 
 # see [Documentation](doc.md)
 
