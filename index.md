@@ -4,9 +4,9 @@ GenomicShiny-Cov is a shiny application for genomics surveillance. This applicat
 
 ![](img/g676.png)
 
-see deployment [render](https://genomic-shinycov.onrender.com/)
+see deployment [railway]()
 
-see [Documentation](doc.md)
+# see [Documentation](doc.md)
 
 ## Input data
 
@@ -18,3 +18,10 @@ The epidemiological of positive cases have two principal headers label: Date of 
 
 ### Vectorial map in GeoJson format   
 The vectorial map can be upload from URL and directly in geojson format  
+
+
+## Authors
+
+- Francisco Ascue Orosco [ORCID](https://orcid.org/0000-0002-5036-4190) [github](https://github.com/FranciscoAscue) 
+- Orson Mestanza Millones [ORCID](https://orcid.org/0000-0001-7268-0496) [github](https://github.com/OrsonMM)
+- Victor Jimenez Vasquez [ORCID](https://orcid.org/0000-0001-6547-6999) [github](https://github.com/Vjimenez-vasquez)
