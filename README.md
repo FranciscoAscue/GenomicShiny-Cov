@@ -4,4 +4,6 @@ GenomicShiny-Cov is a shiny application for genomics surveillance. This applicat
 
 ***add this previous to install in linux***
 
+```bash
 sudo apt-get install libharfbuzz-dev libfribidi-dev
+```
